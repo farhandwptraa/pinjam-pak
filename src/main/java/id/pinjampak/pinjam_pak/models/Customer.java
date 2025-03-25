@@ -14,17 +14,32 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Column(nullable = false)
+    private String nama_lengkap;
 
     @Column(nullable = false)
-    private String password;
+    private String tempat_lahir;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(nullable = false)
+    private String tanggal_lahir;
 
-    @Column(nullable = true)
-    private String role; // Contoh: CUSTOMER, MARKETING, MANAGER, BACKOFFICE
+    @Column(nullable = false)
+    private String pekerjaan;
+
+    @Column(nullable = false)
+    private int gaji;
+
+    @Column(nullable = false)
+    private String alamat;
+
+    @Column(nullable = false)
+    private String no_hp;
+
+    @Column(nullable = false)
+    private String nama_ibu_kandung;
+
+    @Column(nullable = false)
+    private int plafond;
 
     private boolean isActive = true; // Default user aktif
 }
