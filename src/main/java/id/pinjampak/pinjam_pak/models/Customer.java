@@ -12,7 +12,10 @@ public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID id_user;
+
+    @Column(nullable = false)
+    private UUID id_customer;
 
     @Column(nullable = false)
     private String nama_lengkap;
@@ -39,7 +42,6 @@ public class Customer {
     private String nama_ibu_kandung;
 
     @Column(nullable = false)
-    private int plafond;
+    private double plafond;
 
-    private boolean isActive = true; // Default user aktif
 }

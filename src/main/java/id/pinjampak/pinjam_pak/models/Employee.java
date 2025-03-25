@@ -18,8 +18,8 @@ public class Employee {
     private int nip;
 
     @Column(nullable = false)
-    private int id_role;
+    private UUID id_role;
 
     @Column(nullable = false)
-    private String branch;
+    private UUID id_branch;
 }

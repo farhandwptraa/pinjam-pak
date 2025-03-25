@@ -15,5 +15,5 @@ public class Branch {
     private UUID id_cabang;
 
     @Column(nullable = false)
-    private String branch;
+    private String nama_branch;
 }
