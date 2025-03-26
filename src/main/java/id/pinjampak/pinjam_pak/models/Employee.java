@@ -12,14 +12,14 @@ public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_user;
+    private UUID employee_id;
 
     @Column(nullable = false, unique = true)
-    private int nip;
+    private Long nip;
 
     @Column(nullable = false)
-    private UUID id_role;
+    private UUID branch_id;
 
     @Column(nullable = false)
-    private UUID id_branch;
+    private UUID user_id;
 }

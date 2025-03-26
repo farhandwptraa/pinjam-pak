@@ -12,7 +12,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_user;
+    private UUID user_id;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -23,5 +23,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    private boolean isActive = true; // Default user aktif
+    @Column(nullable = false)
+    private String nama_lengkap;
+
+    @Column(nullable = false)
+    private UUID role_id;
 }

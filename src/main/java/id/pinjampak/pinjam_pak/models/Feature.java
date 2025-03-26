@@ -12,7 +12,7 @@ public class Feature {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_feature;
+    private UUID feature_id;
 
     @Column(nullable = false)
     private String nama_feature;

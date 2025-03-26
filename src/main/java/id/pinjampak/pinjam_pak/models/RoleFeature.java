@@ -6,14 +6,17 @@ import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(name = "branch")
+@Table(name = "role_feature")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Branch {
+public class RoleFeature {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID branch_id;
+    private UUID role_feature_id;
 
     @Column(nullable = false)
-    private String nama_branch;
+    private UUID role_id;
+
+    @Column(nullable = false)
+    private UUID feature_id;
 }

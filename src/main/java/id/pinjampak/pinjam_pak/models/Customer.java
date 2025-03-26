@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.models;
 
 import jakarta.persistence.*;
 
+import java.util.Date;
 import java.util.UUID;
 import lombok.*;
 
@@ -12,28 +13,28 @@ public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_user;
+    private UUID customer_id;
 
-    @Column(nullable = false)
-    private UUID id_customer;
-
-    @Column(nullable = false)
-    private String nama_lengkap;
+    @Column(nullable = false, unique = true)
+    private Integer nik ;
 
     @Column(nullable = false)
     private String tempat_lahir;
 
     @Column(nullable = false)
-    private String tanggal_lahir;
+    private Date tanggal_lahir;
 
     @Column(nullable = false)
     private String pekerjaan;
 
     @Column(nullable = false)
-    private int gaji;
+    private Long gaji;
 
     @Column(nullable = false)
-    private String alamat;
+    private Double plafond;
+
+    @Column(nullable = false)
+    private Double sisa_plafond;
 
     @Column(nullable = false)
     private String no_hp;
@@ -42,6 +43,8 @@ public class Customer {
     private String nama_ibu_kandung;
 
     @Column(nullable = false)
-    private double plafond;
+    private UUID branch_id;
 
+    @Column(nullable = false, unique = true)
+    private UUID user_id;
 }

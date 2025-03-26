@@ -12,7 +12,7 @@ public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_role;
+    private UUID role_id;
 
     @Column(nullable = false)
     private String nama_role;
