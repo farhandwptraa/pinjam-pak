@@ -26,6 +26,13 @@ public class User {
     @Column(nullable = false)
     private String nama_lengkap;
 
-    @Column(nullable = false)
-    private UUID role_id;
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Employee employee;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Customer customer;
 }

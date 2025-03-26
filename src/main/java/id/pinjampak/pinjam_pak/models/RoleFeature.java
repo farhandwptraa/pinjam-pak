@@ -14,9 +14,11 @@ public class RoleFeature {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID role_feature_id;
 
-    @Column(nullable = false)
-    private UUID role_id;
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
-    @Column(nullable = false)
-    private UUID feature_id;
+    @ManyToOne
+    @JoinColumn(name = "feature_id", nullable = false)
+    private Feature feature;
 }

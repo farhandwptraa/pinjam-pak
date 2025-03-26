@@ -6,7 +6,7 @@ import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(name = "employeee")
+@Table(name = "employee")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Employee {
 
@@ -17,9 +17,11 @@ public class Employee {
     @Column(nullable = false, unique = true)
     private Long nip;
 
-    @Column(nullable = false)
-    private UUID branch_id;
+    @ManyToOne
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
 
-    @Column(nullable = false)
-    private UUID user_id;
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private User user;
 }

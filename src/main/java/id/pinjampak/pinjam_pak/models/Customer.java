@@ -42,9 +42,11 @@ public class Customer {
     @Column(nullable = false)
     private String nama_ibu_kandung;
 
-    @Column(nullable = false)
-    private UUID branch_id;
+    @ManyToOne
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
 
-    @Column(nullable = false, unique = true)
-    private UUID user_id;
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private User user;
 }
