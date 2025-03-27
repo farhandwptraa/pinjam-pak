@@ -32,6 +32,14 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        // Cek apakah username atau email sudah digunakan sebelum menyimpan
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username sudah digunakan!");
+        }
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email sudah digunakan!");
+        }
+
         // Encode password sebelum menyimpan
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -43,6 +51,7 @@ public class UserService {
         if (user.getRole() == null) {
             user.setRole(defaultRole);
         }
+
         return userRepository.save(user);
     }
 

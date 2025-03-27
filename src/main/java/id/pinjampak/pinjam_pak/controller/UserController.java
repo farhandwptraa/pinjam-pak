@@ -28,8 +28,13 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        try {
+            User newUser = userService.createUser(user);
+            return ResponseEntity.ok(newUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
