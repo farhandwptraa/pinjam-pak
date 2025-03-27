@@ -17,10 +17,4 @@ public class Branch {
 
     @Column(nullable = false)
     private String nama_branch;
-
-    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Employee> employeeList;
-
-    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Customer> customerList;
 }

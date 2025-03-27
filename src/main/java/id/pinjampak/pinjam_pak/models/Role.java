@@ -15,12 +15,6 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID role_id;
 
-    @Column(nullable = false)
-    private String nama_role;
-
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<User> userList;
-
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoleFeature> roleFeatureList;
+    @Column(name = "nama_role", nullable = false, unique = true)
+    private String namaRole;
 }

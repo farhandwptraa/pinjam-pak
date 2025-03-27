@@ -17,7 +17,4 @@ public class Feature {
 
     @Column(nullable = false)
     private String nama_feature;
-
-    @OneToMany(mappedBy = "feature", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoleFeature> roleFeatureList;
 }
