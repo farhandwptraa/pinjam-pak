@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.security;
 
+import id.pinjampak.pinjam_pak.repositories.BlacklistedTokenRepository;
 import id.pinjampak.pinjam_pak.util.JwtUtil;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,10 +19,12 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService, BlacklistedTokenRepository blacklistedTokenRepository) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.blacklistedTokenRepository = blacklistedTokenRepository;
     }
 
     @Override
@@ -35,6 +38,14 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring(7);
+
+        // **✅ Cek apakah token sudah di-blacklist**
+        if (blacklistedTokenRepository.findByToken(token).isPresent()) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token has been blacklisted");
+            return;
+        }
+
         final String username = jwtUtil.extractidUser(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
