@@ -1,12 +1,8 @@
 package id.pinjampak.pinjam_pak.controller;
 
-import id.pinjampak.pinjam_pak.dto.AuthRequestDTO;
-import id.pinjampak.pinjam_pak.dto.AuthResponseDTO;
-import id.pinjampak.pinjam_pak.dto.ChangePasswordRequestDTO;
+import id.pinjampak.pinjam_pak.dto.*;
 import id.pinjampak.pinjam_pak.services.AuthService;
 import id.pinjampak.pinjam_pak.util.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

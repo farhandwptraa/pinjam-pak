@@ -30,7 +30,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Matikan CSRF untuk Postman
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/register", "/auth/login", "/auth/logout").permitAll() // ⬅️ Tambahkan slash di awal!
+                        .requestMatchers("/users/register", "/auth/login", "/auth/logout", "/auth/forgot-password").permitAll() // ⬅️ Tambahkan slash di awal!
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

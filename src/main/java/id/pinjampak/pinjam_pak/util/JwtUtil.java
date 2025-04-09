@@ -13,7 +13,7 @@ import java.util.Date;
 public class JwtUtil {
 
     private final Key SECRET_KEY;
-    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 jam
+    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 1; // 1 jam
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         System.out.println("SECRET_KEY (Raw): " + secret);

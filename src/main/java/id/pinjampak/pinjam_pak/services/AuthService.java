@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.UUID;
 
 @Service
 public class AuthService {
