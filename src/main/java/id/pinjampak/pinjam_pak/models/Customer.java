@@ -16,7 +16,13 @@ public class Customer {
     private UUID customer_id;
 
     @Column(nullable = false, unique = true)
-    private Integer nik ;
+    private String nik ;
+
+    @Column(nullable = false)
+    private String alamat;
+
+    @Column(nullable = false)
+    private String provinsi;
 
     @Column(nullable = false)
     private String tempat_lahir;

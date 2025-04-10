@@ -1,13 +1,13 @@
 package id.pinjampak.pinjam_pak.models;
 
+import id.pinjampak.pinjam_pak.enums.ProvinceArea;
 import jakarta.persistence.*;
-
-import java.util.List;
-import java.util.UUID;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
-@Table(name = "branch")
+@Table(name = "branches")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Branch {
 
@@ -16,5 +16,12 @@ public class Branch {
     private UUID branch_id;
 
     @Column(nullable = false)
-    private String nama_branch;
+    private String nama_cabang;
+
+    @Column(nullable = false)
+    private String alamat;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProvinceArea area; // 👈 Tambahkan ini
 }

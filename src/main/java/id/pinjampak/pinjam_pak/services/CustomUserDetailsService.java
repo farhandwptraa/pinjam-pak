@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.services;
 
 import id.pinjampak.pinjam_pak.models.User;
 import id.pinjampak.pinjam_pak.repositories.UserRepository;
+import id.pinjampak.pinjam_pak.security.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,14 +20,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUsername(username);
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException("User not found");
-        }
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.get().getUsername())
-                .password(user.get().getPassword()) // Password harus di-hash
-                .authorities("USER") // Bisa diubah sesuai role
-                .build();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new CustomUserDetails(user);
     }
 }

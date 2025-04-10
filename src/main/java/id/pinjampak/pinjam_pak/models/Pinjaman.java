@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.models;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.*;
 
@@ -14,12 +15,16 @@ public class Pinjaman {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id_pinjaman;
 
-    @Column(nullable = false)
-    private UUID id_user;
+    @ManyToOne
+    @JoinColumn(name = "id_user", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private int amount;
 
     @Column(nullable = false)
-    private String status;
+    private String status; // misalnya: AKTIF, LUNAS
+
+    @Column(name = "tanggal_pencairan")
+    private LocalDateTime tanggalPencairan;
 }

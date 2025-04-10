@@ -1,6 +1,5 @@
 package id.pinjampak.pinjam_pak.util;
 
-import id.pinjampak.pinjam_pak.models.User;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
