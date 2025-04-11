@@ -16,8 +16,8 @@ public class Pengajuan {
     private UUID id_pengajuan;
 
     @ManyToOne
-    @JoinColumn(name = "id_user", nullable = false)
-    private User user; // user = customer
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // customer yang mengajukan
 
     @ManyToOne
     @JoinColumn(name = "marketing_id")
@@ -35,24 +35,13 @@ public class Pengajuan {
     private int amount;
 
     @Column(nullable = false)
-    private String status; // e.g. PENDING, REJECTED_MARKETING, APPROVED_MARKETING, REJECTED_MANAGER, APPROVED_MANAGER, DISBURSED
+    private String status; // PENDING, REVIEWED, APPROVED, DISBURSED, REJECTED
 
-    @Column(name = "tanggal_pengajuan")
     private LocalDateTime tanggalPengajuan;
-
-    @Column(name = "tanggal_disetujui_marketing")
     private LocalDateTime tanggalDisetujuiMarketing;
-
-    @Column(name = "tanggal_disetujui_manager")
     private LocalDateTime tanggalDisetujuiManager;
-
-    @Column(name = "tanggal_pencairan")
     private LocalDateTime tanggalPencairan;
 
-    @Column(name = "catatan_marketing")
     private String catatanMarketing;
-
-    @Column(name = "catatan_manager")
     private String catatanManager;
 }
-
