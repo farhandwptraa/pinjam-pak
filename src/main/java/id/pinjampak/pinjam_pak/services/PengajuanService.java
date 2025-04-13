@@ -8,6 +8,7 @@ import id.pinjampak.pinjam_pak.repositories.PengajuanRepository;
 import id.pinjampak.pinjam_pak.repositories.UserRepository;
 import id.pinjampak.pinjam_pak.repositories.PinjamanRepository;
 import id.pinjampak.pinjam_pak.repositories.CustomerRepository;
+import id.pinjampak.pinjam_pak.services.NotifikasiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,6 +29,8 @@ public class PengajuanService {
     private final EmployeeRepository employeeRepository;
     private final CustomerRepository customerRepository;
     private final PinjamanRepository pinjamanRepository;
+    private final NotifikasiService notifikasiService;
+
 
     public void buatPengajuan(CreatePengajuanRequestDTO request, String username) {
         User user = userRepository.findByUsername(username)
@@ -37,9 +40,9 @@ public class PengajuanService {
             throw new IllegalArgumentException("User bukan customer");
         }
 
-        Double plafond = user.getCustomer().getPlafond();
-        if (request.getAmount() > plafond) {
-            throw new IllegalArgumentException("Jumlah pengajuan melebihi plafon");
+        Double sisaPlafond = user.getCustomer().getSisa_plafond();
+        if (request.getAmount() > sisaPlafond) {
+            throw new IllegalArgumentException("Jumlah pengajuan melebihi sisa plafon");
         }
 
         Branch customerBranch = user.getCustomer().getBranch();
@@ -66,8 +69,11 @@ public class PengajuanService {
         pengajuan.setAmount(request.getAmount());
         pengajuan.setStatus("PENDING");
         pengajuan.setTanggalPengajuan(LocalDateTime.now());
+        pengajuan.setTenor(request.getTenor());
 
         pengajuanRepository.save(pengajuan);
+
+        notifikasiService.buatNotifikasi(user, "Pengajuan pinjaman Anda telah dikirim.");
     }
 
     public void reviewOlehMarketing(UUID idPengajuan, MarketingReviewRequestDTO request, String username) {
@@ -113,6 +119,7 @@ public class PengajuanService {
         }
 
         pengajuanRepository.save(pengajuan);
+        notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda sedang direview oleh Marketing.");
     }
 
     public List<Pengajuan> getPengajuanPendingUntukMarketing(String username) {
@@ -149,6 +156,7 @@ public class PengajuanService {
 
         if (disetujui) {
             pengajuan.setStatus("APPROVED");
+            notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda telah disetujui oleh Branch Manager.");
         } else {
             pengajuan.setStatus("REJECTED");
         }
@@ -213,5 +221,6 @@ public class PengajuanService {
 
         customer.setSisa_plafond(sisaPlafond - amount);
         customerRepository.save(customer);
+        notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pinjaman Anda telah dicairkan.");
     }
 }

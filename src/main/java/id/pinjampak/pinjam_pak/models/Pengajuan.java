@@ -35,6 +35,9 @@ public class Pengajuan {
     private int amount;
 
     @Column(nullable = false)
+    private Integer tenor;
+
+    @Column(nullable = false)
     private String status; // PENDING, REVIEWED, APPROVED, DISBURSED, REJECTED
 
     private LocalDateTime tanggalPengajuan;

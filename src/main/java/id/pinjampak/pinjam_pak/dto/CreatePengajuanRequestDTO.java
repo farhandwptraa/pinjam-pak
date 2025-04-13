@@ -5,5 +5,6 @@ import lombok.*;
 @Getter @Setter
 public class CreatePengajuanRequestDTO {
     private int amount;
+    private Integer tenor; // dalam bulan, misalnya 12
 }
 
