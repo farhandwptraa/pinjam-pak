@@ -37,15 +37,22 @@ public class AuthService {
     }
 
     public AuthResponseDTO login(AuthRequestDTO request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                request.getUsername(), request.getPassword()
-        ));
+        String identifier = request.getUsernameOrEmail();
+        String password = request.getPassword();
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
+        // Coba cari user berdasarkan email atau username
+        User user = identifier.contains("@")
+                ? userRepository.findByEmail(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan email tidak ditemukan"))
+                : userRepository.findByUsername(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan username tidak ditemukan"));
+
+        // Autentikasi manual karena kita ambil user secara eksplisit
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Password salah.");
+        }
 
         String token = jwtUtil.generateToken(user.getUsername());
-        return new AuthResponseDTO(token);
+        return new AuthResponseDTO(token, user.getRole().getRole_id().toString());
+
     }
 
     public void logout(String token) {
