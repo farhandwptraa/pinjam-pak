@@ -15,8 +15,8 @@ public class Branch {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID branch_id;
 
-    @Column(nullable = false)
-    private String nama_cabang;
+    @Column(name = "nama_cabang", nullable = false)
+    private String namaCabang;
 
     @Column(nullable = false)
     private String alamat;

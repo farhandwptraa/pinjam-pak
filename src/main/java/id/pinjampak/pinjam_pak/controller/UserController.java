@@ -5,19 +5,20 @@ import id.pinjampak.pinjam_pak.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import id.pinjampak.pinjam_pak.dto.UserResponseDTO;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
     @Autowired
     private UserService userService;
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponseDTO> getAllUsers() {
+        return userService.getAllUsersDTO();
     }
 
     @GetMapping("/{username}")
