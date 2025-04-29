@@ -3,6 +3,7 @@ package id.pinjampak.pinjam_pak.controller;
 import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
 import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
 import id.pinjampak.pinjam_pak.dto.ReviewManagerRequestDTO;
+import id.pinjampak.pinjam_pak.dto.PengajuanListResponseDTO;
 import id.pinjampak.pinjam_pak.models.Pengajuan;
 import id.pinjampak.pinjam_pak.services.PengajuanService;
 import lombok.RequiredArgsConstructor;
@@ -64,5 +65,11 @@ public class PengajuanController {
 
         pengajuanService.disbursePengajuan(id, principal.getName());
         return ResponseEntity.ok("Pengajuan telah dicairkan");
+    }
+
+    @GetMapping("/semua")
+    public ResponseEntity<List<PengajuanListResponseDTO>> getAllPengajuan(Principal principal) {
+        List<PengajuanListResponseDTO> list = pengajuanService.getAllPengajuanByRole(principal.getName());
+        return ResponseEntity.ok(list);
     }
 }

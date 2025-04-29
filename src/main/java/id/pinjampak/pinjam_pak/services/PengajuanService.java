@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.services;
 
 import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
 import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
+import id.pinjampak.pinjam_pak.dto.PengajuanListResponseDTO;
 import id.pinjampak.pinjam_pak.models.*;
 import id.pinjampak.pinjam_pak.repositories.EmployeeRepository;
 import id.pinjampak.pinjam_pak.repositories.PengajuanRepository;
@@ -222,5 +223,51 @@ public class PengajuanService {
         customer.setSisa_plafond(sisaPlafond - amount);
         customerRepository.save(customer);
         notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pinjaman Anda telah dicairkan.");
+    }
+
+    public List<PengajuanListResponseDTO> getAllPengajuanByRole(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
+
+        if (user.getEmployee() == null) {
+            throw new AccessDeniedException("Hanya employee yang dapat melihat pengajuan");
+        }
+
+        Employee employee = user.getEmployee();
+        String roleName = employee.getUser().getRole().getNamaRole();
+
+        List<Pengajuan> pengajuans;
+
+        if (roleName.equalsIgnoreCase("MARKETING")) {
+            pengajuans = pengajuanRepository.findAll().stream()
+                    .filter(p ->
+                            p.getMarketing() != null &&
+                                    p.getMarketing().getEmployee_id().equals(employee.getEmployee_id()) &&
+                                    !p.getStatus().equalsIgnoreCase("DISBURSED")
+                    )
+                    .toList();
+        } else if (roleName.equalsIgnoreCase("MANAGER") || roleName.equalsIgnoreCase("BACKOFFICE")) {
+            Branch branch = employee.getBranch();
+            pengajuans = pengajuanRepository.findAll().stream()
+                    .filter(p ->
+                            p.getMarketing() != null &&
+                                    p.getMarketing().getBranch().getBranch_id().equals(branch.getBranch_id()) &&
+                                    !p.getStatus().equalsIgnoreCase("DISBURSED")
+                    )
+                    .toList();
+        } else {
+            throw new AccessDeniedException("Role tidak diizinkan melihat data pengajuan");
+        }
+
+        return pengajuans.stream()
+                .map(p -> new PengajuanListResponseDTO(
+                        p.getId_pengajuan(),
+                        p.getUser().getCustomer().getUser().getNama_lengkap(),
+                        p.getAmount(),
+                        p.getStatus(),
+                        p.getTanggalPengajuan(),
+                        p.getMarketing() != null ? p.getMarketing().getUser().getUsername() : "-"
+                ))
+                .toList();
     }
 }
