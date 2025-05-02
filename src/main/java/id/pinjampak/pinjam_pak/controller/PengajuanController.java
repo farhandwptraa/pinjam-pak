@@ -1,6 +1,8 @@
 package id.pinjampak.pinjam_pak.controller;
 
-import id.pinjampak.pinjam_pak.dto.*;
+import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
+import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
+import id.pinjampak.pinjam_pak.dto.ReviewManagerRequestDTO;
 import id.pinjampak.pinjam_pak.models.Pengajuan;
 import id.pinjampak.pinjam_pak.services.PengajuanService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -27,54 +28,41 @@ public class PengajuanController {
     }
 
     @PutMapping("/{id}/review-marketing")
-    public ResponseEntity<?> reviewOlehMarketing(@PathVariable UUID id,
+    public ResponseEntity<?> reviewPengajuanOlehMarketing(@PathVariable UUID id,
                                                           @RequestBody MarketingReviewRequestDTO request,
                                                           Principal principal) {
         pengajuanService.reviewOlehMarketing(id, request, principal.getName());
-        return ResponseEntity.ok(Map.of("message", "Review marketing berhasil diproses"));
+        return ResponseEntity.ok("Review marketing berhasil diproses");
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<List<ReviewMarketingDTO>> getPengajuanPendingUntukMarketing(Principal principal) {
-        List<ReviewMarketingDTO> list = pengajuanService.getPengajuanPendingUntukMarketing(principal.getName());
+    public ResponseEntity<List<Pengajuan>> getPengajuanPendingUntukMarketing(Principal principal) {
+        List<Pengajuan> list = pengajuanService.getPengajuanPendingUntukMarketing(principal.getName());
         return ResponseEntity.ok(list);
     }
 
     @PutMapping("/{id}/review-manager")
-    public ResponseEntity<?> reviewByManager(
+    public ResponseEntity<String> reviewByManager(
             @PathVariable UUID id,
             @RequestBody ReviewManagerRequestDTO request,
             Principal principal) {
 
         pengajuanService.reviewByBranchManager(id, principal.getName(), request.isDisetujui(), request.getCatatan());
-
-        return ResponseEntity.ok(Map.of("message", "Review manager berhasil diproses"));
+        return ResponseEntity.ok("Pengajuan telah diproses oleh Branch Manager");
     }
 
     @GetMapping("/pending-manager")
-    public ResponseEntity<List<ReviewManagerDTO>> getPengajuanPendingUntukManager(Principal principal) {
-        List<ReviewManagerDTO> list = pengajuanService.getPengajuanPendingUntukManager(principal.getName());
+    public ResponseEntity<List<Pengajuan>> getPengajuanPendingUntukManager(Principal principal) {
+        List<Pengajuan> list = pengajuanService.getPengajuanPendingUntukManager(principal.getName());
         return ResponseEntity.ok(list);
     }
 
     @PutMapping("/{id}/disburse")
-    public ResponseEntity<Void> disbursePengajuan(
+    public ResponseEntity<String> disbursePengajuan(
             @PathVariable UUID id,
             Principal principal) {
 
         pengajuanService.disbursePengajuan(id, principal.getName());
-        return ResponseEntity.ok().build(); // Tidak kirim body, hanya status 200 OK
-    }
-
-    @GetMapping("/pending-backoffice")
-    public ResponseEntity<List<ReviewBackofficeDTO>> getPengajuanPendingUntukBackoffice(Principal principal) {
-        List<ReviewBackofficeDTO> list = pengajuanService.getPengajuanPendingUntukBackoffice(principal.getName());
-        return ResponseEntity.ok(list);
-    }
-
-    @GetMapping("/semua")
-    public ResponseEntity<List<PengajuanListResponseDTO>> getAllPengajuan(Principal principal) {
-        List<PengajuanListResponseDTO> list = pengajuanService.getAllPengajuanByRole(principal.getName());
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok("Pengajuan telah dicairkan");
     }
 }

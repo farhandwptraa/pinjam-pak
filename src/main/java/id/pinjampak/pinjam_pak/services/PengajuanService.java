@@ -1,12 +1,14 @@
 package id.pinjampak.pinjam_pak.services;
 
-import id.pinjampak.pinjam_pak.dto.*;
+import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
+import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
 import id.pinjampak.pinjam_pak.models.*;
 import id.pinjampak.pinjam_pak.repositories.EmployeeRepository;
 import id.pinjampak.pinjam_pak.repositories.PengajuanRepository;
 import id.pinjampak.pinjam_pak.repositories.UserRepository;
 import id.pinjampak.pinjam_pak.repositories.PinjamanRepository;
 import id.pinjampak.pinjam_pak.repositories.CustomerRepository;
+import id.pinjampak.pinjam_pak.services.NotifikasiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -120,7 +122,7 @@ public class PengajuanService {
         notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda sedang direview oleh Marketing.");
     }
 
-    public List<ReviewMarketingDTO> getPengajuanPendingUntukMarketing(String username) {
+    public List<Pengajuan> getPengajuanPendingUntukMarketing(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
 
@@ -132,37 +134,17 @@ public class PengajuanService {
 
         return pengajuanRepository.findAll().stream()
                 .filter(p -> p.getStatus().equals("PENDING") &&
-                        p.getMarketing() != null &&
                         p.getMarketing().getEmployee_id().equals(marketing.getEmployee_id()))
-                .map(p -> new ReviewMarketingDTO(
-                        p.getId_pengajuan(),
-                        p.getUser().getNama_lengkap(),
-                        p.getAmount(),
-                        p.getTenor(),
-                        p.getStatus(),
-                        p.getTanggalPengajuan(),
-                        p.getCatatanMarketing(),
-                        p.getCatatanManager()
-                ))
                 .toList();
     }
-
 
     public void reviewByBranchManager(UUID idPengajuan, String username, boolean disetujui, String catatan) {
         Pengajuan pengajuan = pengajuanRepository.findById(idPengajuan)
                 .orElseThrow(() -> new NoSuchElementException("Pengajuan tidak ditemukan"));
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
-
-        Employee manager = user.getEmployee();
-        if (manager == null) {
-            throw new IllegalStateException("User ini bukan employee");
-        }
-
-        // Validasi bahwa user adalah Branch Manager untuk pengajuan ini
-        if (!manager.equals(pengajuan.getBranchManager())) {
-            throw new AccessDeniedException("Anda bukan Branch Manager yang ditugaskan untuk pengajuan ini");
+        // Validasi user adalah Branch Manager yang ditugaskan
+        if (!pengajuan.getBranchManager().getUser().getUsername().equals(username)) {
+            throw new AccessDeniedException("Anda bukan Branch Manager untuk pengajuan ini");
         }
 
         if (!pengajuan.getStatus().equals("REVIEWED")) {
@@ -177,42 +159,28 @@ public class PengajuanService {
             notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda telah disetujui oleh Branch Manager.");
         } else {
             pengajuan.setStatus("REJECTED");
-            notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda ditolak oleh Branch Manager.");
         }
 
         pengajuanRepository.save(pengajuan);
     }
 
-    public List<ReviewManagerDTO> getPengajuanPendingUntukManager(String username) {
+    public List<Pengajuan> getPengajuanPendingUntukManager(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
 
-        if (user.getEmployee() == null) {
-            throw new IllegalArgumentException("User bukan employee");
+        Employee manager = user.getEmployee();
+        if (manager == null) {
+            throw new IllegalStateException("User ini bukan employee / manager");
         }
 
-        Employee manager = user.getEmployee();
-
-        return pengajuanRepository.findByBranchManagerAndStatus(manager, "REVIEWED")
-                .stream()
-                .map(p -> new ReviewManagerDTO(
-                        p.getId_pengajuan(),
-                        p.getUser().getNama_lengkap(),
-                        p.getAmount(),
-                        p.getTenor(),
-                        p.getStatus(),
-                        p.getTanggalPengajuan(),
-                        p.getCatatanMarketing()
-                ))
-                .toList();
+        return pengajuanRepository.findByBranchManagerAndStatus(manager, "REVIEWED");
     }
 
     public void disbursePengajuan(UUID idPengajuan, String username) {
         Pengajuan pengajuan = pengajuanRepository.findById(idPengajuan)
                 .orElseThrow(() -> new NoSuchElementException("Pengajuan tidak ditemukan"));
 
-        System.out.println("STATUS: " + pengajuan.getStatus());  // Log status
-        if (!"APPROVED".equalsIgnoreCase(pengajuan.getStatus())) {
+        if (!pengajuan.getStatus().equals("APPROVED")) {
             throw new IllegalStateException("Pengajuan belum disetujui oleh Manager");
         }
 
@@ -254,76 +222,5 @@ public class PengajuanService {
         customer.setSisa_plafond(sisaPlafond - amount);
         customerRepository.save(customer);
         notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pinjaman Anda telah dicairkan.");
-    }
-
-    public List<ReviewBackofficeDTO> getPengajuanPendingUntukBackoffice(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
-
-        Employee employee = user.getEmployee();
-        if (employee == null) {
-            throw new IllegalArgumentException("User bukan employee");
-        }
-
-        return pengajuanRepository.findAll().stream()
-                .filter(p -> "APPROVED".equals(p.getStatus()) &&
-                        p.getUser().getCustomer().getBranch().getBranch_id()
-                                .equals(employee.getBranch().getBranch_id()))
-                .map(p -> new ReviewBackofficeDTO(
-                        p.getId_pengajuan(),
-                        p.getUser().getNama_lengkap(),
-                        p.getAmount(),
-                        p.getTenor(),
-                        p.getStatus(),
-                        p.getTanggalPengajuan(),
-                        p.getCatatanManager()
-                ))
-                .toList();
-    }
-
-    public List<PengajuanListResponseDTO> getAllPengajuanByRole(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
-
-        if (user.getEmployee() == null) {
-            throw new AccessDeniedException("Hanya employee yang dapat melihat pengajuan");
-        }
-
-        Employee employee = user.getEmployee();
-        String roleName = employee.getUser().getRole().getNamaRole();
-
-        List<Pengajuan> pengajuans;
-
-        if (roleName.equalsIgnoreCase("MARKETING")) {
-            pengajuans = pengajuanRepository.findAll().stream()
-                    .filter(p ->
-                            p.getMarketing() != null &&
-                                    p.getMarketing().getEmployee_id().equals(employee.getEmployee_id()) &&
-                                    !p.getStatus().equalsIgnoreCase("DISBURSED")
-                    )
-                    .toList();
-        } else if (roleName.equalsIgnoreCase("MANAGER") || roleName.equalsIgnoreCase("BACKOFFICE")) {
-            Branch branch = employee.getBranch();
-            pengajuans = pengajuanRepository.findAll().stream()
-                    .filter(p ->
-                            p.getMarketing() != null &&
-                                    p.getMarketing().getBranch().getBranch_id().equals(branch.getBranch_id()) &&
-                                    !p.getStatus().equalsIgnoreCase("DISBURSED")
-                    )
-                    .toList();
-        } else {
-            throw new AccessDeniedException("Role tidak diizinkan melihat data pengajuan");
-        }
-
-        return pengajuans.stream()
-                .map(p -> new PengajuanListResponseDTO(
-                        p.getId_pengajuan(),
-                        p.getUser().getCustomer().getUser().getNama_lengkap(),
-                        p.getAmount(),
-                        p.getStatus(),
-                        p.getTanggalPengajuan(),
-                        p.getMarketing() != null ? p.getMarketing().getUser().getUsername() : "-"
-                ))
-                .toList();
     }
 }
