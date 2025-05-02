@@ -18,9 +18,5 @@ public interface PengajuanRepository extends JpaRepository<Pengajuan, UUID> {
     // Hitung jumlah pengajuan aktif yang ditangani oleh marketing tertentu
     @Query("SELECT COUNT(p) FROM Pengajuan p WHERE p.marketing = :marketing AND p.status IN ('PENDING', 'REVIEWED')")
     int countActiveByMarketing(@Param("marketing") Employee marketing);
-
-    @Query("SELECT e FROM Employee e WHERE e.branch = :branch AND e.user.role.namaRole = :roleName")
-    List<Employee> findByBranchAndUserRoleNamaRole(@Param("branch") Branch branch, @Param("roleName") String roleName);
-
 }
 

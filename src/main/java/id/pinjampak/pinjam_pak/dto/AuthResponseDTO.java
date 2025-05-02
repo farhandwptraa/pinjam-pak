@@ -8,4 +8,6 @@ import lombok.Getter;
 public class AuthResponseDTO {
     private String token;
     private String role_id; // tambahkan ini
+    private String username;
+    private String role;
 }
