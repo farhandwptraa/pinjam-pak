@@ -54,7 +54,7 @@ public class AuthService {
 
         // Ambil role dari user (misalnya "ADMIN", "USER", dll.)
         String role = user.getRole().getNamaRole();  // Sesuaikan dengan nama role yang Anda gunakan
-        String role_id = user.getRole().getRole_id().toString();  // Role ID
+        String role_id = user.getRole().getRoleId().toString();  // Role ID
 
         return new AuthResponseDTO(token, role_id, user.getUsername(), role);  // Return dengan username dan role
     }

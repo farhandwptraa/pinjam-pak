@@ -13,7 +13,8 @@ public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID role_id;
+    @Column(name = "role_id") // ini untuk mencocokkan nama kolom di database
+    private UUID roleId;
 
     @Column(name = "nama_role", nullable = false, unique = true)
     private String namaRole;
