@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface RoleFeatureRepository extends JpaRepository<RoleFeature, UUID> {
     Optional<RoleFeature> findByRoleRoleIdAndFeatureFeatureId(UUID roleId, UUID featureId);
     List<RoleFeature> findByRoleRoleId(UUID roleId);
+    boolean existsByRole_RoleIdAndFeature_FeatureId(UUID roleId, UUID featureId);
 }

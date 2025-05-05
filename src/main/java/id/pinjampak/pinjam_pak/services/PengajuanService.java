@@ -8,6 +8,7 @@ import id.pinjampak.pinjam_pak.repositories.PengajuanRepository;
 import id.pinjampak.pinjam_pak.repositories.UserRepository;
 import id.pinjampak.pinjam_pak.repositories.PinjamanRepository;
 import id.pinjampak.pinjam_pak.repositories.CustomerRepository;
+import id.pinjampak.pinjam_pak.repositories.RoleFeatureRepository;
 import id.pinjampak.pinjam_pak.services.NotifikasiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,6 +31,7 @@ public class PengajuanService {
     private final CustomerRepository customerRepository;
     private final PinjamanRepository pinjamanRepository;
     private final NotifikasiService notifikasiService;
+    private final RoleFeatureRepository roleFeatureRepository;
 
 
     public void buatPengajuan(CreatePengajuanRequestDTO request, String username) {
@@ -177,20 +179,34 @@ public class PengajuanService {
     }
 
     public void disbursePengajuan(UUID idPengajuan, String username) {
+        // UUID fitur 'pengajuan.disburse'
+        UUID PENGAJUAN_DISBURSE_FEATURE_ID = UUID.fromString("8D9DE09C-AFB9-4988-ABDA-94C204347914");
+
+        // Cari pengajuan
         Pengajuan pengajuan = pengajuanRepository.findById(idPengajuan)
                 .orElseThrow(() -> new NoSuchElementException("Pengajuan tidak ditemukan"));
 
-        if (!pengajuan.getStatus().equals("APPROVED")) {
+        if (!pengajuan.getStatus().equalsIgnoreCase("APPROVED")) {
             throw new IllegalStateException("Pengajuan belum disetujui oleh Manager");
         }
 
+        // Cari user yang login
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
 
-        if (!user.getRole().getNamaRole().equalsIgnoreCase("BACKOFFICE")) {
+        // Cek apakah role user punya akses ke fitur pengajuan.disburse
+        Role role = user.getRole();
+        boolean hasAccess = roleFeatureRepository.existsByRole_RoleIdAndFeature_FeatureId(role.getRoleId(), PENGAJUAN_DISBURSE_FEATURE_ID);
+        if (!hasAccess) {
+            throw new AccessDeniedException("Role Anda tidak memiliki akses ke fitur pencairan pengajuan");
+        }
+
+        // Validasi role harus BACKOFFICE
+        if (!role.getNamaRole().equalsIgnoreCase("BACKOFFICE")) {
             throw new AccessDeniedException("Anda bukan Backoffice");
         }
 
+        // Validasi cabang employee harus sama dengan cabang marketing pengajuan
         Employee employee = user.getEmployee();
         if (employee == null || !employee.getBranch().equals(pengajuan.getMarketing().getBranch())) {
             throw new AccessDeniedException("Anda tidak memiliki akses ke pengajuan ini");
@@ -210,7 +226,7 @@ public class PengajuanService {
         pinjaman.setTanggalPencairan(LocalDateTime.now());
         pinjamanRepository.save(pinjaman);
 
-        // Update sisa plafond
+        // Update sisa plafond customer
         Customer customer = pengajuan.getUser().getCustomer();
         double sisaPlafond = customer.getSisa_plafond();
         double amount = pengajuan.getAmount();
@@ -221,6 +237,8 @@ public class PengajuanService {
 
         customer.setSisa_plafond(sisaPlafond - amount);
         customerRepository.save(customer);
+
+        // Kirim notifikasi ke customer
         notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pinjaman Anda telah dicairkan.");
     }
 }
