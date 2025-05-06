@@ -8,9 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
 public interface RoleFeatureRepository extends JpaRepository<RoleFeature, UUID> {
-    Optional<RoleFeature> findByRoleRoleIdAndFeatureFeatureId(UUID roleId, UUID featureId);
-    List<RoleFeature> findByRoleRoleId(UUID roleId);
+    List<RoleFeature> findByRole_RoleId(UUID roleId);
+    void deleteByRole_RoleId(UUID roleId);
     boolean existsByRole_RoleIdAndFeature_FeatureId(UUID roleId, UUID featureId);
 }

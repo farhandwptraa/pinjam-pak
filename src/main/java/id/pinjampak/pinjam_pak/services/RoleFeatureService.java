@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.services;
 
+import id.pinjampak.pinjam_pak.dto.FeatureDTO;
 import id.pinjampak.pinjam_pak.dto.RoleFeatureDTO;
 import id.pinjampak.pinjam_pak.models.*;
 import id.pinjampak.pinjam_pak.repositories.*;
@@ -18,39 +19,32 @@ public class RoleFeatureService {
     private final FeatureRepository featureRepository;
     private final RoleFeatureRepository roleFeatureRepository;
 
-    public Map<String, Object> getAllRoleFeatures() {
-        List<Role> roles = roleRepository.findAll();
-        List<Feature> features = featureRepository.findAll();
-        List<RoleFeature> mappings = roleFeatureRepository.findAll();
-
-        return Map.of(
-                "roles", roles,
-                "features", features,
-                "mappings", mappings
-        );
+    public List<FeatureDTO> getFeaturesByRole(UUID roleId) {
+        List<RoleFeature> roleFeatures = roleFeatureRepository.findByRole_RoleId(roleId);
+        return roleFeatures.stream()
+                .map(rf -> new FeatureDTO(rf.getFeature().getFeatureId(), rf.getFeature().getNamaFeature()))
+                .toList();
     }
 
-    @Transactional
-    public void updateRoleFeatures(List<RoleFeatureDTO> dtos) {
-        for (RoleFeatureDTO dto : dtos) {
-            Optional<RoleFeature> existing = roleFeatureRepository.findByRoleRoleIdAndFeatureFeatureId(dto.getRoleId(), dto.getFeatureId());
-
-            if (dto.isEnabled()) {
-                if (existing.isEmpty()) {
-                    Role role = roleRepository.findById(dto.getRoleId()).orElseThrow();
-                    Feature feature = featureRepository.findById(dto.getFeatureId()).orElseThrow();
-                    roleFeatureRepository.save(new RoleFeature(null, role, feature));
-                }
-            } else {
-                existing.ifPresent(roleFeatureRepository::delete);
-            }
-        }
+    public List<FeatureDTO> getAllFeatures() {
+        return featureRepository.findAll().stream()
+                .map(feature -> new FeatureDTO(feature.getFeatureId(), feature.getNamaFeature()))
+                .toList();
     }
 
-    public List<UUID> getFeatureIdsByRole(UUID roleId) {
-        return roleFeatureRepository.findByRoleRoleId(roleId)
-                .stream()
-                .map(rf -> rf.getFeature().getFeatureId())
-                .collect(Collectors.toList());
+    public void updateRoleFeatures(UUID roleId, List<UUID> featureIds) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        // Hapus fitur sebelumnya
+        roleFeatureRepository.deleteByRole_RoleId(roleId);
+
+        // Tambahkan fitur baru
+        List<Feature> features = featureRepository.findAllById(featureIds);
+        List<RoleFeature> roleFeatures = features.stream()
+                .map(feature -> new RoleFeature(null, role, feature))
+                .toList();
+
+        roleFeatureRepository.saveAll(roleFeatures);
     }
 }
