@@ -1,6 +1,7 @@
 package id.pinjampak.pinjam_pak.services;
 
 import id.pinjampak.pinjam_pak.dto.CustomerRequestDTO;
+import id.pinjampak.pinjam_pak.dto.CustomerResponseDTO;
 import id.pinjampak.pinjam_pak.enums.ProvinceArea;
 import id.pinjampak.pinjam_pak.helper.ProvinceAreaMapper;
 import id.pinjampak.pinjam_pak.models.*;
@@ -60,5 +61,32 @@ public class CustomerService {
         customer.setBranch(branch);
 
         customerRepository.save(customer);
+    }
+
+    public Optional<CustomerResponseDTO> getCustomerDTOByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .flatMap(customerRepository::findByUser)
+                .map(customer -> {
+                    CustomerResponseDTO dto = new CustomerResponseDTO();
+                    dto.setUsername(customer.getUser().getUsername());
+                    dto.setEmail(customer.getUser().getEmail());
+                    dto.setNama_lengkap(customer.getUser().getNama_lengkap());
+
+                    dto.setNik(customer.getNik());
+                    dto.setTempat_lahir(customer.getTempat_lahir());
+                    dto.setTanggal_lahir(customer.getTanggal_lahir());
+                    dto.setPekerjaan(customer.getPekerjaan());
+                    dto.setGaji(customer.getGaji());
+                    dto.setPlafond(customer.getPlafond());
+                    dto.setSisa_plafond(customer.getSisa_plafond());
+                    dto.setNo_hp(customer.getNo_hp());
+                    dto.setNama_ibu_kandung(customer.getNama_ibu_kandung());
+                    dto.setAlamat(customer.getAlamat());
+                    dto.setProvinsi(customer.getProvinsi());
+                    dto.setNamaCabang(customer.getBranch().getNamaCabang());
+                    dto.setAreaCabang(customer.getBranch().getArea().name());
+
+                    return dto;
+                });
     }
 }

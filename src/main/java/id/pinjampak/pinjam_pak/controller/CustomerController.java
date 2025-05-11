@@ -1,6 +1,7 @@
 package id.pinjampak.pinjam_pak.controller;
 
 import id.pinjampak.pinjam_pak.dto.CustomerRequestDTO;
+import id.pinjampak.pinjam_pak.dto.CustomerResponseDTO;
 import id.pinjampak.pinjam_pak.services.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,13 @@ public class CustomerController {
         customerService.registerCustomer(username, dto);
 
         return ResponseEntity.ok("Customer berhasil didaftarkan");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<CustomerResponseDTO> getCustomerData(@AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        return customerService.getCustomerDTOByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

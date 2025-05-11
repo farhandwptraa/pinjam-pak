@@ -35,6 +35,17 @@ public class UserService {
         )).toList();
     }
 
+    public Optional<UserResponseDTO> getUserDTOByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> new UserResponseDTO(
+                        user.getUser_id(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getNama_lengkap(),
+                        user.getRole().getNamaRole()
+                ));
+    }
+
     public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id);
     }
