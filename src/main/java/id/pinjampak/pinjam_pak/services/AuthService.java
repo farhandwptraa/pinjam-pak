@@ -40,24 +40,27 @@ public class AuthService {
         String identifier = request.getUsernameOrEmail();
         String password = request.getPassword();
 
-        // Coba cari user berdasarkan email atau username
         User user = identifier.contains("@")
                 ? userRepository.findByEmail(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan email tidak ditemukan"))
                 : userRepository.findByUsername(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan username tidak ditemukan"));
 
-        // Autentikasi manual karena kita ambil user secara eksplisit
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Password salah.");
         }
 
         String token = jwtUtil.generateToken(user.getUsername());
+        String role = user.getRole().getNamaRole();
+        String role_id = user.getRole().getRoleId().toString();
 
-        // Ambil role dari user (misalnya "ADMIN", "USER", dll.)
-        String role = user.getRole().getNamaRole();  // Sesuaikan dengan nama role yang Anda gunakan
-        String role_id = user.getRole().getRoleId().toString();  // Role ID
+        // ✅ Ambil customer ID jika ada
+        String customerId = null;
+        if (user.getCustomer() != null) {
+            customerId = user.getCustomer().getCustomer_id().toString();
+        }
 
-        return new AuthResponseDTO(token, role_id, user.getUsername(), role);  // Return dengan username dan role
+        return new AuthResponseDTO(token, role_id, user.getUsername(), role, customerId);
     }
+
 
     public void logout(String token) {
         Date expiryDate = jwtUtil.extractExpiration(token); // ✅ Ambil expiry dari token

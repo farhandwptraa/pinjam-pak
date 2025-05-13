@@ -7,7 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AuthResponseDTO {
     private String token;
-    private String role_id; // tambahkan ini
+    private String role_id;
     private String username;
     private String role;
+    private String customerId; // ✅ Tambahkan ini
 }
