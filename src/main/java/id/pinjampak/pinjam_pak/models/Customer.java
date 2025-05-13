@@ -55,4 +55,7 @@ public class Customer {
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
+
+    @Column(name = "foto_ktp_url")
+    private String fotoKtpUrl;
 }

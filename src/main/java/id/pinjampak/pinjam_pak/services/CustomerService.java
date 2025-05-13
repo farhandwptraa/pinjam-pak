@@ -10,11 +10,19 @@ import id.pinjampak.pinjam_pak.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerService {
+
+    @Value("${upload.ktp.dir}")
+    private String uploadKtpDir;
 
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
@@ -28,7 +36,9 @@ public class CustomerService {
     }
 
     @Transactional
-    public void registerCustomer(String username, CustomerRequestDTO dto) {
+    public void registerCustomer(String username, CustomerRequestDTO dto, MultipartFile fotoKtp) {
+        System.out.println("📥 Memulai proses pendaftaran customer...");
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
 
@@ -36,10 +46,7 @@ public class CustomerService {
             throw new RuntimeException("User sudah terdaftar sebagai customer");
         }
 
-        // Mapping area dari provinsi
         ProvinceArea area = ProvinceAreaMapper.getAreaByProvince(dto.getProvinsi());
-
-        // Ambil 1 cabang dari area tersebut (nanti bisa diatur logikanya lebih dinamis)
         Branch branch = branchRepository.findFirstByArea(area)
                 .orElseThrow(() -> new RuntimeException("Cabang tidak ditemukan untuk area " + area));
 
@@ -60,7 +67,25 @@ public class CustomerService {
         customer.setProvinsi(dto.getProvinsi());
         customer.setBranch(branch);
 
+        // 💾 Simpan file KTP
+        String filename = UUID.randomUUID() + "_" + fotoKtp.getOriginalFilename();
+        String fullPath = uploadKtpDir + filename;
+        File dest = new File(fullPath);
+
+        System.out.println("💾 Menyimpan file ke: " + fullPath);
+
+        try {
+            dest.getParentFile().mkdirs();
+            fotoKtp.transferTo(dest);
+            System.out.println("✅ File berhasil disimpan!");
+            customer.setFotoKtpUrl("/uploads/ktp/" + filename); // hanya path relatif jika digunakan di frontend
+        } catch (IOException | IllegalStateException e) {
+            System.out.println("❌ Gagal menyimpan file KTP: " + e.getMessage());
+            throw new RuntimeException("Gagal menyimpan file KTP", e);
+        }
+
         customerRepository.save(customer);
+        System.out.println("✅ Customer berhasil disimpan ke database.");
     }
 
     public Optional<CustomerResponseDTO> getCustomerDTOByUsername(String username) {
