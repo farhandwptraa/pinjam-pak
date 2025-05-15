@@ -34,20 +34,21 @@ public class ForgotPasswordService {
             User user = userOptional.get();
 
             // Hapus token lama jika ada
-            Optional<PasswordResetToken> existingToken = tokenRepository.findByUser(user);
-            existingToken.ifPresent(tokenRepository::delete);
+            tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
 
             // Generate token baru
             String token = UUID.randomUUID().toString();
             LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(30);
             PasswordResetToken resetToken = new PasswordResetToken(token, user, expiryDate);
-
             tokenRepository.save(resetToken);
 
-            // Kirim email reset password
-            String resetLink = "http://localhost:4200/reset-password?token=" + token;
-            emailService.sendResetPasswordEmail(email, resetLink);
+            // Kirim email reset password dalam format HTML
+            String resetLink = "pinjampak://reset-password?token=" + token;
+            String htmlContent = "<p>Klik link berikut untuk mereset password Anda:</p>"
+                    + "<p><a href=\"" + resetLink + "\">Reset Password</a></p>"
+                    + "<p>Link ini hanya berlaku selama 30 menit.</p>";
 
+            emailService.sendResetPasswordEmail(email, htmlContent);
             System.out.println("Reset link: " + resetLink);
         } else {
             System.out.println("User tidak ditemukan untuk email: " + email);

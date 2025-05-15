@@ -1,8 +1,10 @@
 package id.pinjampak.pinjam_pak.services;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,13 +13,18 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendResetPasswordEmail(String toEmail, String resetLink) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toEmail);
-        message.setSubject("Reset Password Pinjam_Pak");
-        message.setText("Klik link berikut untuk mereset password Anda:\n\n" + resetLink +
-                "\n\nLink ini hanya berlaku selama 30 menit.");
+    public void sendResetPasswordEmail(String toEmail, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        mailSender.send(message);
+            helper.setTo(toEmail);
+            helper.setSubject("Reset Password Pinjam_Pak");
+            helper.setText(htmlContent, true); // true untuk HTML
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Gagal mengirim email", e);
+        }
     }
 }
