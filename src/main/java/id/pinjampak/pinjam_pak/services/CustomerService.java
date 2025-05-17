@@ -51,7 +51,11 @@ public class CustomerService {
         Branch branch = branchRepository.findFirstByArea(area)
                 .orElseThrow(() -> new RuntimeException("Cabang tidak ditemukan untuk area " + area));
 
-        double plafond = dto.getGaji() * 0.3;
+        // ✅ Gunakan LoanLevel default
+        LoanLevel defaultLoanLevel = LoanLevel.LEVEL_1;
+
+        // ✅ Hitung plafon berdasarkan multiplier level 1
+        double plafond = dto.getGaji() * defaultLoanLevel.getPlafondMultiplier();
 
         Customer customer = new Customer();
         customer.setUser(user);
@@ -67,9 +71,7 @@ public class CustomerService {
         customer.setAlamat(dto.getAlamat());
         customer.setProvinsi(dto.getProvinsi());
         customer.setBranch(branch);
-
-        // ✅ Set default LoanLevel agar tidak null (penting!)
-        customer.setLoanLevel(LoanLevel.LEVEL_1);
+        customer.setLoanLevel(defaultLoanLevel); // ✅ Set default LoanLevel
 
         // 💾 Simpan file KTP
         String filename = UUID.randomUUID() + "_" + fotoKtp.getOriginalFilename();
@@ -82,7 +84,7 @@ public class CustomerService {
             dest.getParentFile().mkdirs();
             fotoKtp.transferTo(dest);
             System.out.println("✅ File berhasil disimpan!");
-            customer.setFotoKtpUrl("/uploads/ktp/" + filename); // hanya path relatif jika digunakan di frontend
+            customer.setFotoKtpUrl("/uploads/ktp/" + filename);
         } catch (IOException | IllegalStateException e) {
             System.out.println("❌ Gagal menyimpan file KTP: " + e.getMessage());
             throw new RuntimeException("Gagal menyimpan file KTP", e);
