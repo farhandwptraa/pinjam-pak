@@ -64,8 +64,8 @@ public class PengajuanService {
 
         // Ambil level dan plafond maksimum
         LoanLevel level = customer.getLoanLevel();
-        double basePlafond = customer.getPlafond();
-        double maxAllowed = basePlafond * level.getPlafondMultiplier();
+        double gaji = customer.getGaji();
+        double maxAllowed = gaji * level.getPlafondMultiplier();
 
         // Validasi tenor
         if (request.getTenor() > level.getMaxTenor()) {
@@ -261,12 +261,13 @@ public class PengajuanService {
         Customer customer = pengajuan.getUser().getCustomer();
         double sisaPlafond = customer.getSisa_plafond();
         double amount = pengajuan.getAmount();
+        double amountFinal = pengajuan.getAmountFinal();
 
         if (amount > sisaPlafond) {
             throw new IllegalStateException("Sisa plafond tidak mencukupi");
         }
 
-        customer.setSisa_plafond(sisaPlafond - amount);
+        customer.setSisa_plafond(sisaPlafond - amountFinal);
         customerRepository.save(customer);
 
         // Kirim notifikasi ke customer
