@@ -27,4 +27,7 @@ public class Pinjaman {
 
     @Column(name = "tanggal_pencairan")
     private LocalDateTime tanggalPencairan;
+
+    @Column(name = "bunga")
+    private double bunga;
 }

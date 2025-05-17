@@ -47,4 +47,13 @@ public class Pengajuan {
 
     private String catatanMarketing;
     private String catatanManager;
+
+    @Column(name = "bunga")
+    private double bunga;
+
+    @Column(name = "max_plafond")
+    private double maxPlafond;
+
+    @Column(name = "amount_final")
+    private double amountFinal;
 }

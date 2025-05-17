@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.services;
 
 import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
 import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
+import id.pinjampak.pinjam_pak.enums.LoanLevel;
 import id.pinjampak.pinjam_pak.models.*;
 import id.pinjampak.pinjam_pak.repositories.EmployeeRepository;
 import id.pinjampak.pinjam_pak.repositories.PengajuanRepository;
@@ -35,48 +36,77 @@ public class PengajuanService {
 
 
     public void buatPengajuan(CreatePengajuanRequestDTO request, String username) {
+        // Ambil user berdasarkan username
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
 
-        if (user.getCustomer() == null) {
+        Customer customer = user.getCustomer();
+        if (customer == null) {
             throw new IllegalArgumentException("User bukan customer");
         }
 
-        Double sisaPlafond = user.getCustomer().getSisa_plafond();
-        if (request.getAmount() > sisaPlafond) {
-            throw new IllegalArgumentException("Jumlah pengajuan melebihi sisa plafon");
-        }
+        Branch customerBranch = customer.getBranch();
 
-        Branch customerBranch = user.getCustomer().getBranch();
-
-        // Ambil semua employee dari branch ini yg role-nya MARKETING
+        // Ambil semua employee dari branch ini yang role-nya MARKETING
         List<Employee> marketings = employeeRepository.findAll().stream()
-                .filter(emp ->
-                        emp.getBranch().equals(customerBranch) &&
-                                emp.getUser().getRole().getNamaRole().equalsIgnoreCase("MARKETING"))
+                .filter(emp -> emp.getBranch().equals(customerBranch)
+                        && emp.getUser().getRole().getNamaRole().equalsIgnoreCase("MARKETING"))
                 .toList();
 
         if (marketings.isEmpty()) {
             throw new IllegalStateException("Tidak ada marketing untuk cabang ini");
         }
 
-        // Pilih marketing dengan pengajuan aktif paling sedikit
+        // Pilih marketing dengan jumlah pengajuan aktif paling sedikit
         Employee selectedMarketing = marketings.stream()
                 .min(Comparator.comparingInt(pengajuanRepository::countActiveByMarketing))
                 .orElseThrow();
 
+        // Ambil level dan plafond maksimum
+        LoanLevel level = customer.getLoanLevel();
+        double basePlafond = customer.getPlafond();
+        double maxAllowed = basePlafond * level.getPlafondMultiplier();
+
+        // Validasi tenor
+        if (request.getTenor() > level.getMaxTenor()) {
+            throw new IllegalArgumentException(String.format(
+                    "Tenor melebihi batas untuk level %s: maksimum %d bulan",
+                    level, level.getMaxTenor()));
+        }
+
+        // Hitung bunga dan amountFinal
+        double bunga = level.getBungaByTenor(request.getTenor());
+        double amount = request.getAmount();
+        double amountFinal = amount + (amount * bunga);
+
+        // Validasi plafon berdasarkan amountFinal
+        if (amount > maxAllowed) {
+            throw new IllegalArgumentException(String.format(
+                    "Jumlah pengajuan (termasuk bunga) melebihi batas plafon untuk level %s: maksimum %.2f",
+                    level, maxAllowed));
+        }
+
+        // Buat dan simpan entitas pengajuan
         Pengajuan pengajuan = new Pengajuan();
         pengajuan.setUser(user);
         pengajuan.setMarketing(selectedMarketing);
         pengajuan.setAmount(request.getAmount());
+        pengajuan.setTenor(request.getTenor());
+        pengajuan.setBunga(bunga);
+        pengajuan.setAmountFinal(amountFinal);
+        pengajuan.setMaxPlafond(maxAllowed);
         pengajuan.setStatus("PENDING");
         pengajuan.setTanggalPengajuan(LocalDateTime.now());
-        pengajuan.setTenor(request.getTenor());
 
         pengajuanRepository.save(pengajuan);
 
-        notifikasiService.buatNotifikasi(user, "Pengajuan pinjaman Anda telah dikirim.");
+        // Kirim notifikasi ke customer
+        notifikasiService.buatNotifikasi(
+                user,
+                String.format("Pengajuan Anda disimpan: bunga %.2f%%/bulan, tenor %d bulan. Total yang harus dikembalikan: Rp %.2f",
+                        bunga * 100, request.getTenor(), amountFinal));
     }
+
 
     public void reviewOlehMarketing(UUID idPengajuan, MarketingReviewRequestDTO request, String username) {
         Pengajuan pengajuan = pengajuanRepository.findById(idPengajuan)
@@ -222,6 +252,7 @@ public class PengajuanService {
         Pinjaman pinjaman = new Pinjaman();
         pinjaman.setUser(pengajuan.getUser());
         pinjaman.setAmount(pengajuan.getAmount());
+        pinjaman.setBunga(pengajuan.getBunga());   // ⬅️ pindahkan bunga
         pinjaman.setStatus("AKTIF");
         pinjaman.setTanggalPencairan(LocalDateTime.now());
         pinjamanRepository.save(pinjaman);

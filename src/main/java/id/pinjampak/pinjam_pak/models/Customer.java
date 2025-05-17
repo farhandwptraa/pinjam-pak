@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.models;
 
+import id.pinjampak.pinjam_pak.enums.LoanLevel;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -58,4 +59,8 @@ public class Customer {
 
     @Column(name = "foto_ktp_url")
     private String fotoKtpUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "loan_level")
+    private LoanLevel loanLevel;
 }

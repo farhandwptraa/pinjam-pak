@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.services;
 
 import id.pinjampak.pinjam_pak.dto.CustomerRequestDTO;
 import id.pinjampak.pinjam_pak.dto.CustomerResponseDTO;
+import id.pinjampak.pinjam_pak.enums.LoanLevel;
 import id.pinjampak.pinjam_pak.enums.ProvinceArea;
 import id.pinjampak.pinjam_pak.helper.ProvinceAreaMapper;
 import id.pinjampak.pinjam_pak.models.*;
@@ -66,6 +67,9 @@ public class CustomerService {
         customer.setAlamat(dto.getAlamat());
         customer.setProvinsi(dto.getProvinsi());
         customer.setBranch(branch);
+
+        // ✅ Set default LoanLevel agar tidak null (penting!)
+        customer.setLoanLevel(LoanLevel.LEVEL_1);
 
         // 💾 Simpan file KTP
         String filename = UUID.randomUUID() + "_" + fotoKtp.getOriginalFilename();
