@@ -5,8 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AuthRequestDTO {
-    private String usernameOrEmail;
-    private String password;
+public class LogoutRequestDTO {
     private String fcmToken;
 }

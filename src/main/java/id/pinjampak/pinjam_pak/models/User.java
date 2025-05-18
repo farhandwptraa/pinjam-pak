@@ -2,6 +2,8 @@ package id.pinjampak.pinjam_pak.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.*;
 
@@ -35,4 +37,7 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Customer customer;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FcmToken> fcmTokens = new ArrayList<>();
 }

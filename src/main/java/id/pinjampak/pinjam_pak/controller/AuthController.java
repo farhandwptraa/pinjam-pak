@@ -2,6 +2,7 @@ package id.pinjampak.pinjam_pak.controller;
 
 import id.pinjampak.pinjam_pak.dto.*;
 import id.pinjampak.pinjam_pak.services.AuthService;
+import id.pinjampak.pinjam_pak.services.FcmTokenService;
 import id.pinjampak.pinjam_pak.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +25,13 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader,
+                                         @RequestBody(required = false) LogoutRequestDTO request) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.badRequest().body("Token tidak valid atau tidak ada.");
         }
-
-        String token = authHeader.substring(7); // Menghapus "Bearer " dari token
-        authService.logout(token);
-
+        String token = authHeader.substring(7);
+        authService.logout(token, request != null ? request.getFcmToken() : null);
         return ResponseEntity.ok("Logout berhasil.");
     }
 

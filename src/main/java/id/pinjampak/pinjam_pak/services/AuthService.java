@@ -9,8 +9,6 @@ import id.pinjampak.pinjam_pak.repositories.BlacklistedTokenRepository;
 import id.pinjampak.pinjam_pak.repositories.UserRepository;
 import id.pinjampak.pinjam_pak.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,21 +22,23 @@ public class AuthService {
 
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
-    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final FcmTokenService fcmTokenService;
 
-    public AuthService(AuthenticationManager authenticationManager, UserRepository userRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, FcmTokenService fcmTokenService) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
+        this.fcmTokenService = fcmTokenService;
     }
 
     public AuthResponseDTO login(AuthRequestDTO request) {
         String identifier = request.getUsernameOrEmail();
         String password = request.getPassword();
+
+        System.out.println("Login request: " + request.getUsernameOrEmail() + ", FCM: " + request.getFcmToken());
 
         User user = identifier.contains("@")
                 ? userRepository.findByEmail(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan email tidak ditemukan"))
@@ -47,6 +47,10 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Password salah.");
         }
+        if (request.getFcmToken() != null && user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER")) {
+            fcmTokenService.saveToken(user, request.getFcmToken());
+        }
+
 
         String token = jwtUtil.generateToken(user.getUsername());
         String role = user.getRole().getNamaRole();
@@ -62,17 +66,15 @@ public class AuthService {
     }
 
 
-    public void logout(String token) {
-        Date expiryDate = jwtUtil.extractExpiration(token); // ✅ Ambil expiry dari token
+    public void logout(String token, String fcmToken) {
+        Date expiryDate = jwtUtil.extractExpiration(token);
+        LocalDateTime localExpiryDate = expiryDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        blacklistedTokenRepository.save(new BlacklistedToken(token, localExpiryDate));
 
-        // ✅ Konversi Date → LocalDateTime
-        LocalDateTime localExpiryDate = expiryDate.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
-
-        // ✅ Simpan token ke database
-        BlacklistedToken blacklistedToken = new BlacklistedToken(token, localExpiryDate);
-        blacklistedTokenRepository.save(blacklistedToken);
+        String username = jwtUtil.extractidUser(token);
+        userRepository.findByUsername(username).ifPresent(user -> {
+            if (fcmToken != null) fcmTokenService.deleteToken(fcmToken);
+        });
     }
 
     public void changePassword(String username, ChangePasswordRequestDTO request) {
