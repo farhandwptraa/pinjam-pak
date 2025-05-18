@@ -4,6 +4,7 @@ import id.pinjampak.pinjam_pak.models.FcmToken;
 import id.pinjampak.pinjam_pak.models.User;
 import id.pinjampak.pinjam_pak.repositories.FcmTokenRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -26,6 +27,7 @@ public class FcmTokenService {
         }
     }
 
+    @Transactional
     public void deleteToken(String token) {
         fcmTokenRepository.deleteByToken(token);
     }

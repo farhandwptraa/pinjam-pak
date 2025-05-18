@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.time.LocalDateTime;
@@ -66,14 +67,21 @@ public class AuthService {
     }
 
 
+    @Transactional
     public void logout(String token, String fcmToken) {
+        // Simpan token ke blacklist dengan expiry date
         Date expiryDate = jwtUtil.extractExpiration(token);
         LocalDateTime localExpiryDate = expiryDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        blacklistedTokenRepository.save(new BlacklistedToken(token, localExpiryDate));
 
+        BlacklistedToken blacklistedToken = new BlacklistedToken(token, localExpiryDate);
+        blacklistedTokenRepository.save(blacklistedToken);
+
+        // Hapus FCM token jika ada
         String username = jwtUtil.extractidUser(token);
         userRepository.findByUsername(username).ifPresent(user -> {
-            if (fcmToken != null) fcmTokenService.deleteToken(fcmToken);
+            if (fcmToken != null) {
+                fcmTokenService.deleteToken(fcmToken);
+            }
         });
     }
 
