@@ -46,4 +46,9 @@ public class AuthController {
         authService.changePassword(username, request);
         return ResponseEntity.ok("Password berhasil diubah.");
     }
+
+    @PostMapping("/login-google")
+    public ResponseEntity<AuthResponseDTO> loginWithGoogle(@RequestBody LoginWithGoogleDTO request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
+    }
 }
