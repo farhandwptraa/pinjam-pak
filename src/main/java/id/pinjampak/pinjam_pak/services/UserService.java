@@ -27,7 +27,7 @@ public class UserService {
     public List<UserResponseDTO> getAllUsersDTO() {
         List<User> users = userRepository.findAll();
         return users.stream().map(user -> new UserResponseDTO(
-                user.getUser_id(),
+                user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getNama_lengkap(),
@@ -38,7 +38,7 @@ public class UserService {
     public Optional<UserResponseDTO> getUserDTOByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(user -> new UserResponseDTO(
-                        user.getUser_id(),
+                        user.getUserId(),
                         user.getUsername(),
                         user.getEmail(),
                         user.getNama_lengkap(),

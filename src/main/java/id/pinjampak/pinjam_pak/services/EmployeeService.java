@@ -94,7 +94,7 @@ public class EmployeeService {
         Optional<Employee> empOpt = employeeRepository.findById(id);
         if (empOpt.isPresent()) {
             employeeRepository.deleteById(id);
-            userRepository.deleteById(empOpt.get().getUser().getUser_id());
+            userRepository.deleteById(empOpt.get().getUser().getUserId());
             return "✅ Employee berhasil dihapus.";
         }
         return "❌ Employee tidak ditemukan.";
