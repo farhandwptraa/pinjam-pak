@@ -13,13 +13,13 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendResetPasswordEmail(String toEmail, String htmlContent) {
+    public void sendHtmlEmail(String toEmail, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("Reset Password Pinjam_Pak");
+            helper.setSubject(subject);
             helper.setText(htmlContent, true); // true untuk HTML
 
             mailSender.send(message);

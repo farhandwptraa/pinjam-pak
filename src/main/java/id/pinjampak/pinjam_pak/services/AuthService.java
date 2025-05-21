@@ -60,6 +60,9 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Password salah.");
         }
+        if (user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER") && !user.isEmailVerified()) {
+            throw new RuntimeException("Silakan verifikasi email Anda terlebih dahulu.");
+        }
         if (request.getFcmToken() != null && user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER")) {
             fcmTokenService.saveToken(user, request.getFcmToken());
         }

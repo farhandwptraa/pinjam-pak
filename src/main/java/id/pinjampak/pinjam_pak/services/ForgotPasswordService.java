@@ -48,7 +48,7 @@ public class ForgotPasswordService {
                     + "<p><a href=\"" + resetLink + "\">Reset Password</a></p>"
                     + "<p>Link ini hanya berlaku selama 30 menit.</p>";
 
-            emailService.sendResetPasswordEmail(email, htmlContent);
+            emailService.sendHtmlEmail(email, "Reset Password", htmlContent);
             System.out.println("Reset link: " + resetLink);
         } else {
             System.out.println("User tidak ditemukan untuk email: " + email);

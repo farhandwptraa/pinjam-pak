@@ -24,6 +24,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
     public List<UserResponseDTO> getAllUsersDTO() {
         List<User> users = userRepository.findAll();
         return users.stream().map(user -> new UserResponseDTO(
@@ -51,7 +54,6 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        // Cek apakah username atau email sudah digunakan sebelum menyimpan
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new RuntimeException("Username sudah digunakan!");
         }
@@ -59,16 +61,29 @@ public class UserService {
             throw new RuntimeException("Email sudah digunakan!");
         }
 
-        // Encode password sebelum menyimpan
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Cari role "Customer" dari database
         Role defaultRole = roleRepository.findByNamaRole("CUSTOMER")
                 .orElseThrow(() -> new RuntimeException("Role Customer tidak ditemukan"));
 
-        // Set default role jika belum ada
         if (user.getRole() == null) {
             user.setRole(defaultRole);
+        }
+
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole().getNamaRole())) {
+            String token = UUID.randomUUID().toString();
+            user.setVerificationToken(token);
+            user.setEmailVerified(false);
+
+            // Kirim email
+            String link = "pinjampak://email-verification?token=" + token;
+            String html = "<h3>Verifikasi Akun Anda</h3>"
+                    + "<p>Klik link berikut untuk verifikasi akun Anda:</p>"
+                    + "<a href=\"" + link + "\">Verifikasi Sekarang</a>"
+                    + "<p>Terima kasih telah mendaftar di PinjamPak.</p>";
+            emailService.sendHtmlEmail(user.getEmail(), "Verifikasi Akun Anda", html);
+        } else {
+            user.setEmailVerified(true); // Auto-verified untuk non-customer
         }
 
         return userRepository.save(user);
@@ -89,5 +104,17 @@ public class UserService {
 
     public Optional<User> getUserByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public Optional<User> verifyUserByToken(String token) {
+        Optional<User> userOpt = userRepository.findByVerificationToken(token);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setEmailVerified(true);
+            user.setVerificationToken(null);
+            userRepository.save(user);
+            return Optional.of(user);
+        }
+        return Optional.empty();
     }
 }

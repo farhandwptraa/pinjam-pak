@@ -29,6 +29,12 @@ public class User {
     @Column(nullable = false)
     private String nama_lengkap;
 
+    @Column(name = "email_verified")
+    private boolean emailVerified = false;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;

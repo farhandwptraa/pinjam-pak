@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.controller;
 
+import id.pinjampak.pinjam_pak.dto.RegisterRequestDTO;
 import id.pinjampak.pinjam_pak.models.User;
 import id.pinjampak.pinjam_pak.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import id.pinjampak.pinjam_pak.dto.UserResponseDTO;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -29,14 +32,30 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody RegisterRequestDTO dto) {
         try {
-            User newUser = userService.createUser(user);
-            return ResponseEntity.ok(newUser);
+            User newUser = new User();
+            newUser.setUsername(dto.getUsername());
+            newUser.setEmail(dto.getEmail());
+            newUser.setPassword(dto.getPassword());
+            newUser.setNama_lengkap(dto.getNamaLengkap());
+
+            User createdUser = userService.createUser(newUser);
+
+            UserResponseDTO responseDTO = new UserResponseDTO(
+                    createdUser.getUserId(),
+                    createdUser.getUsername(),
+                    createdUser.getEmail(),
+                    createdUser.getNama_lengkap(),
+                    createdUser.getRole().getNamaRole()
+            );
+
+            return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
     @PutMapping("/{id}")
     public User updateUser(@PathVariable UUID id, @RequestBody User user) {
@@ -46,5 +65,15 @@ public class UserController {
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam String token) {
+        Optional<User> userOpt = userService.verifyUserByToken(token);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok(Map.of("message", "Email berhasil diverifikasi."));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "Token tidak valid."));
+        }
     }
 }
