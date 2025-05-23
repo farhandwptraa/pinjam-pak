@@ -6,5 +6,6 @@ import lombok.*;
 public class CreatePengajuanRequestDTO {
     private int amount;
     private Integer tenor; // dalam bulan, misalnya 12
+    private String lokasi;
 }
 

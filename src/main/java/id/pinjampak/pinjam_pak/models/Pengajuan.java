@@ -56,4 +56,7 @@ public class Pengajuan {
 
     @Column(name = "amount_final")
     private double amountFinal;
+
+    @Column(name = "lokasi")
+    private String lokasi;
 }

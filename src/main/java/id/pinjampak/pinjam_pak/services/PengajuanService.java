@@ -97,6 +97,8 @@ public class PengajuanService {
         pengajuan.setMaxPlafond(maxAllowed);
         pengajuan.setStatus("PENDING");
         pengajuan.setTanggalPengajuan(LocalDateTime.now());
+        pengajuan.setLokasi(request.getLokasi());
+        System.out.println("Lokasi pengajuan: " + request.getLokasi());
 
         pengajuanRepository.save(pengajuan);
 

@@ -16,4 +16,5 @@ public class PengajuanResponseDTO {
     private Integer tenor;
     private String status;
     private LocalDateTime tanggalPengajuan;
+    private String lokasi;
 }

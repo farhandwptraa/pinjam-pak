@@ -27,7 +27,8 @@ public class HistoryService {
                         p.getAmount(),
                         p.getTenor(),
                         p.getStatus(),
-                        p.getTanggalPengajuan()
+                        p.getTanggalPengajuan(),
+                        p.getLokasi()
                 ))
                 .toList();
     }
