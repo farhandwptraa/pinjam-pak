@@ -77,7 +77,7 @@ public class PengajuanService {
         // Hitung bunga dan amountFinal
         double bunga = level.getBungaByTenor(request.getTenor());
         double amount = request.getAmount();
-        double amountFinal = amount + (amount * bunga);
+        double amountFinal = amount + (amount * bunga * request.getTenor());
 
         // Validasi plafon berdasarkan amountFinal
         if (amount > maxAllowed) {
