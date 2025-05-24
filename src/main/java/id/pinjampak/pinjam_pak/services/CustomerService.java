@@ -116,6 +116,7 @@ public class CustomerService {
                     dto.setProvinsi(customer.getProvinsi());
                     dto.setNamaCabang(customer.getBranch().getNamaCabang());
                     dto.setAreaCabang(customer.getBranch().getArea().name());
+                    dto.setLoanLevel(customer.getLoanLevel().name());
 
                     return dto;
                 });

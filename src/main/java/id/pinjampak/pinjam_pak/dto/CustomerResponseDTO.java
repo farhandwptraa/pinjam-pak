@@ -23,4 +23,5 @@ public class CustomerResponseDTO {
     private String provinsi;
     private String namaCabang;
     private String areaCabang;
+    private String loanLevel;
 }
