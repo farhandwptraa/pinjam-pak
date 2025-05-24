@@ -10,5 +10,6 @@ public class AuthResponseDTO {
     private String role_id;
     private String username;
     private String role;
-    private String customerId; // ✅ Tambahkan ini
+    private String customerId;
+    private Boolean emailVerified;
 }

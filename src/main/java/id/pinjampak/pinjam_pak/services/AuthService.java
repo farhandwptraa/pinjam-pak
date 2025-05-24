@@ -8,6 +8,7 @@ import id.pinjampak.pinjam_pak.dto.AuthRequestDTO;
 import id.pinjampak.pinjam_pak.dto.AuthResponseDTO;
 import id.pinjampak.pinjam_pak.dto.ChangePasswordRequestDTO;
 import id.pinjampak.pinjam_pak.dto.LoginWithGoogleDTO;
+import id.pinjampak.pinjam_pak.exception.LoginException;
 import id.pinjampak.pinjam_pak.models.BlacklistedToken;
 import id.pinjampak.pinjam_pak.models.Customer;
 import id.pinjampak.pinjam_pak.models.Role;
@@ -54,31 +55,31 @@ public class AuthService {
         System.out.println("Login request: " + request.getUsernameOrEmail() + ", FCM: " + request.getFcmToken());
 
         User user = identifier.contains("@")
-                ? userRepository.findByEmail(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan email tidak ditemukan"))
-                : userRepository.findByUsername(identifier).orElseThrow(() -> new UsernameNotFoundException("User dengan username tidak ditemukan"));
+                ? userRepository.findByEmail(identifier).orElseThrow(() -> new LoginException("User dengan email tidak ditemukan"))
+                : userRepository.findByUsername(identifier).orElseThrow(() -> new LoginException("User dengan username tidak ditemukan"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Password salah.");
+            throw new LoginException("Password salah.");
         }
+
         if (user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER") && !user.isEmailVerified()) {
-            throw new RuntimeException("Silakan verifikasi email Anda terlebih dahulu.");
+            throw new LoginException("Silakan verifikasi email Anda terlebih dahulu.");
         }
+
         if (request.getFcmToken() != null && user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER")) {
             fcmTokenService.saveToken(user, request.getFcmToken());
         }
-
 
         String token = jwtUtil.generateToken(user.getUsername());
         String role = user.getRole().getNamaRole();
         String role_id = user.getRole().getRoleId().toString();
 
-        // ✅ Ambil customer ID jika ada
         String customerId = null;
         if (user.getCustomer() != null) {
             customerId = user.getCustomer().getCustomer_id().toString();
         }
 
-        return new AuthResponseDTO(token, role_id, user.getUsername(), role, customerId);
+        return new AuthResponseDTO(token, role_id, user.getUsername(), role, customerId, user.isEmailVerified());
     }
 
     @Transactional
@@ -153,7 +154,7 @@ public class AuthService {
                     ? user.getCustomer().getCustomer_id().toString()
                     : null;
 
-            return new AuthResponseDTO(token, roleId, user.getUsername(), role, customerId);
+            return new AuthResponseDTO(token, roleId, user.getUsername(), role, customerId, user.isEmailVerified());
         } catch (Exception e) {
             throw new RuntimeException("Google login failed: " + e.getMessage());
         }
