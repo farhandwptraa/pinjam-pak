@@ -4,10 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import id.pinjampak.pinjam_pak.dto.AuthRequestDTO;
-import id.pinjampak.pinjam_pak.dto.AuthResponseDTO;
-import id.pinjampak.pinjam_pak.dto.ChangePasswordRequestDTO;
-import id.pinjampak.pinjam_pak.dto.LoginWithGoogleDTO;
+import id.pinjampak.pinjam_pak.dto.*;
 import id.pinjampak.pinjam_pak.exception.LoginException;
 import id.pinjampak.pinjam_pak.models.BlacklistedToken;
 import id.pinjampak.pinjam_pak.models.Customer;
@@ -28,6 +25,7 @@ import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -39,13 +37,15 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final FcmTokenService fcmTokenService;
+    private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, FcmTokenService fcmTokenService) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, FcmTokenService fcmTokenService, EmailService emailService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.fcmTokenService = fcmTokenService;
+        this.emailService = emailService;
     }
 
     public AuthResponseDTO login(AuthRequestDTO request) {
@@ -63,7 +63,8 @@ public class AuthService {
         }
 
         if (user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER") && !user.isEmailVerified()) {
-            throw new LoginException("Silakan verifikasi email Anda terlebih dahulu.");
+            resendVerificationEmail(user); // 👈 kirim ulang email verifikasi
+            throw new LoginException("Silakan verifikasi email Anda terlebih dahulu. Email verifikasi telah dikirim ulang.");
         }
 
         if (request.getFcmToken() != null && user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER")) {
@@ -158,5 +159,19 @@ public class AuthService {
         } catch (Exception e) {
             throw new RuntimeException("Google login failed: " + e.getMessage());
         }
+    }
+
+    public void resendVerificationEmail(User user) {
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        userRepository.save(user); // update token baru
+
+        String link = "pinjampak://email-verification?token=" + token;
+        String html = "<h3>Verifikasi Akun Anda</h3>"
+                + "<p>Klik link berikut untuk verifikasi akun Anda:</p>"
+                + "<a href=\"" + link + "\">Verifikasi Sekarang</a>"
+                + "<p>Terima kasih telah mendaftar di PinjamPak.</p>";
+
+        emailService.sendHtmlEmail(user.getEmail(), "Verifikasi Akun Anda", html);
     }
 }

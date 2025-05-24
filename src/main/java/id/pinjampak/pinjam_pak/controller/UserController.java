@@ -32,30 +32,25 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@RequestBody RegisterRequestDTO dto) {
-        try {
-            User newUser = new User();
-            newUser.setUsername(dto.getUsername());
-            newUser.setEmail(dto.getEmail());
-            newUser.setPassword(dto.getPassword());
-            newUser.setNama_lengkap(dto.getNamaLengkap());
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody RegisterRequestDTO dto) {
+        User newUser = new User();
+        newUser.setUsername(dto.getUsername());
+        newUser.setEmail(dto.getEmail());
+        newUser.setPassword(dto.getPassword());
+        newUser.setNama_lengkap(dto.getNamaLengkap());
 
-            User createdUser = userService.createUser(newUser);
+        User createdUser = userService.createUser(newUser);
 
-            UserResponseDTO responseDTO = new UserResponseDTO(
-                    createdUser.getUserId(),
-                    createdUser.getUsername(),
-                    createdUser.getEmail(),
-                    createdUser.getNama_lengkap(),
-                    createdUser.getRole().getNamaRole()
-            );
+        UserResponseDTO responseDTO = new UserResponseDTO(
+                createdUser.getUserId(),
+                createdUser.getUsername(),
+                createdUser.getEmail(),
+                createdUser.getNama_lengkap(),
+                createdUser.getRole().getNamaRole()
+        );
 
-            return ResponseEntity.ok(responseDTO);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        return ResponseEntity.ok(responseDTO);
     }
-
 
     @PutMapping("/{id}")
     public User updateUser(@PathVariable UUID id, @RequestBody User user) {

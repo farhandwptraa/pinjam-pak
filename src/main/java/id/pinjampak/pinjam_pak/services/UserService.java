@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.services;
 
+import id.pinjampak.pinjam_pak.exception.RegistrationException;
 import id.pinjampak.pinjam_pak.models.Role;
 import id.pinjampak.pinjam_pak.models.User;
 import id.pinjampak.pinjam_pak.repositories.RoleRepository;
@@ -55,16 +56,17 @@ public class UserService {
 
     public User createUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username sudah digunakan!");
+            throw new RegistrationException("Username sudah digunakan");
         }
+
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email sudah digunakan!");
+            throw new RegistrationException("Email sudah digunakan");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         Role defaultRole = roleRepository.findByNamaRole("CUSTOMER")
-                .orElseThrow(() -> new RuntimeException("Role Customer tidak ditemukan"));
+                .orElseThrow(() -> new RegistrationException("Role Customer tidak ditemukan"));
 
         if (user.getRole() == null) {
             user.setRole(defaultRole);
