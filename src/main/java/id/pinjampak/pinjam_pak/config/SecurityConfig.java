@@ -39,6 +39,8 @@ public class SecurityConfig {
                                 "/api/users/verify",
                                 "/api/auth/login-google",
                                 "/auth/logout",
+                                "/api/wilayah/provinsi",
+                                "/api/wilayah/provinsi/{id}/kota",
                                 "/auth/forgot-password",
                                 "/auth/reset-password"
                         ).permitAll()

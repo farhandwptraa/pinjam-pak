@@ -3,8 +3,6 @@ package id.pinjampak.pinjam_pak.services;
 import id.pinjampak.pinjam_pak.dto.CustomerRequestDTO;
 import id.pinjampak.pinjam_pak.dto.CustomerResponseDTO;
 import id.pinjampak.pinjam_pak.enums.LoanLevel;
-import id.pinjampak.pinjam_pak.enums.ProvinceArea;
-import id.pinjampak.pinjam_pak.helper.ProvinceAreaMapper;
 import id.pinjampak.pinjam_pak.models.*;
 import id.pinjampak.pinjam_pak.repositories.*;
 
@@ -28,12 +26,14 @@ public class CustomerService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final BranchRepository branchRepository;
+    private final ProvinceRepository provinceRepository;
 
     @Autowired
-    public CustomerService(UserRepository userRepository, CustomerRepository customerRepository, BranchRepository branchRepository) {
+    public CustomerService(UserRepository userRepository, CustomerRepository customerRepository, BranchRepository branchRepository, ProvinceRepository provinceRepository) {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.branchRepository = branchRepository;
+        this.provinceRepository = provinceRepository;
     }
 
     @Transactional
@@ -47,9 +47,12 @@ public class CustomerService {
             throw new RuntimeException("User sudah terdaftar sebagai customer");
         }
 
-        ProvinceArea area = ProvinceAreaMapper.getAreaByProvince(dto.getProvinsi());
-        Branch branch = branchRepository.findFirstByArea(area)
-                .orElseThrow(() -> new RuntimeException("Cabang tidak ditemukan untuk area " + area));
+        Province province = provinceRepository.findByName(dto.getProvinsi())
+                .orElseThrow(() -> new RuntimeException("Provinsi tidak ditemukan"));
+
+        Branch branch = branchRepository.findFirstByArea(province.getArea())
+                .orElseThrow(() -> new RuntimeException("Cabang tidak ditemukan untuk area " + province.getArea()));
+
 
         // ✅ Gunakan LoanLevel default
         LoanLevel defaultLoanLevel = LoanLevel.LEVEL_1;

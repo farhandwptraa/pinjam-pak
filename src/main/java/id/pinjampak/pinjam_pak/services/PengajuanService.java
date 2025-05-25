@@ -253,7 +253,7 @@ public class PengajuanService {
         // Simpan ke tabel pinjaman
         Pinjaman pinjaman = new Pinjaman();
         pinjaman.setUser(pengajuan.getUser());
-        pinjaman.setAmount(pengajuan.getAmount());
+        pinjaman.setAmount((int) pengajuan.getAmountFinal());
         pinjaman.setBunga(pengajuan.getBunga());   // ⬅️ pindahkan bunga
         pinjaman.setStatus("AKTIF");
         pinjaman.setTanggalPencairan(LocalDateTime.now());
