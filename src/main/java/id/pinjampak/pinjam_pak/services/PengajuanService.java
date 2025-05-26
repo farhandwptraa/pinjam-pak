@@ -2,6 +2,8 @@ package id.pinjampak.pinjam_pak.services;
 
 import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
 import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
+import id.pinjampak.pinjam_pak.dto.PengajuanListResponseDTO;
+import id.pinjampak.pinjam_pak.dto.PengajuanPendingResponseDTO;
 import id.pinjampak.pinjam_pak.enums.LoanLevel;
 import id.pinjampak.pinjam_pak.models.*;
 import id.pinjampak.pinjam_pak.repositories.EmployeeRepository;
@@ -156,7 +158,7 @@ public class PengajuanService {
         notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda sedang direview oleh Marketing.");
     }
 
-    public List<Pengajuan> getPengajuanPendingUntukMarketing(String username) {
+    public List<PengajuanPendingResponseDTO> getPengajuanPendingUntukMarketing(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
 
@@ -169,6 +171,19 @@ public class PengajuanService {
         return pengajuanRepository.findAll().stream()
                 .filter(p -> p.getStatus().equals("PENDING") &&
                         p.getMarketing().getEmployee_id().equals(marketing.getEmployee_id()))
+                .map(p -> new PengajuanPendingResponseDTO(
+                        p.getId_pengajuan().toString(), // asumsi UUID atau Long
+                        p.getUser().getNama_lengkap(),
+                        p.getAmount(),
+                        p.getTenor(),
+                        p.getStatus(),
+                        p.getTanggalPengajuan().toString(), // asumsi LocalDate
+                        p.getCatatanMarketing(),
+                        p.getCatatanManager(),
+                        p.getLokasi(), // bisa digabung atau dipisah tergantung field
+                        p.getAmountFinal(),
+                        p.getMarketing().getUser().getNama_lengkap()
+                ))
                 .toList();
     }
 
@@ -176,29 +191,48 @@ public class PengajuanService {
         Pengajuan pengajuan = pengajuanRepository.findById(idPengajuan)
                 .orElseThrow(() -> new NoSuchElementException("Pengajuan tidak ditemukan"));
 
-        // Validasi user adalah Branch Manager yang ditugaskan
+        // Validasi: hanya branch manager terkait yang bisa review
         if (!pengajuan.getBranchManager().getUser().getUsername().equals(username)) {
             throw new AccessDeniedException("Anda bukan Branch Manager untuk pengajuan ini");
         }
 
+        // Validasi status pengajuan
         if (!pengajuan.getStatus().equals("REVIEWED")) {
             throw new IllegalStateException("Pengajuan tidak dalam status REVIEWED");
         }
 
+        // Simpan catatan & waktu review
         pengajuan.setCatatanManager(catatan);
         pengajuan.setTanggalDisetujuiManager(LocalDateTime.now());
 
         if (disetujui) {
             pengajuan.setStatus("APPROVED");
-            notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pengajuan Anda telah disetujui oleh Branch Manager.");
+
+            // Cari back office dari branch yang sama
+            Branch branch = pengajuan.getBranchManager().getBranch();
+            List<Employee> backoffices = employeeRepository.findAll().stream()
+                    .filter(emp ->
+                            emp.getBranch().equals(branch) &&
+                                    emp.getUser().getRole().getNamaRole().equalsIgnoreCase("BACKOFFICE"))
+                    .toList();
+
+            if (backoffices.isEmpty()) {
+                throw new IllegalStateException("Tidak ada Backoffice untuk cabang ini");
+            }
+
+            pengajuan.setBackOffice(backoffices.get(0)); // ambil salah satu
+            notifikasiService.buatNotifikasi(pengajuan.getUser(),
+                    "Pengajuan Anda telah disetujui oleh Branch Manager dan menunggu proses pencairan.");
         } else {
             pengajuan.setStatus("REJECTED");
+            notifikasiService.buatNotifikasi(pengajuan.getUser(),
+                    "Pengajuan Anda telah ditolak oleh Branch Manager.");
         }
 
         pengajuanRepository.save(pengajuan);
     }
 
-    public List<Pengajuan> getPengajuanPendingUntukManager(String username) {
+    public List<PengajuanPendingResponseDTO> getPengajuanPendingUntukManager(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
 
@@ -207,7 +241,22 @@ public class PengajuanService {
             throw new IllegalStateException("User ini bukan employee / manager");
         }
 
-        return pengajuanRepository.findByBranchManagerAndStatus(manager, "REVIEWED");
+        return pengajuanRepository.findByBranchManagerAndStatus(manager, "REVIEWED")
+                .stream()
+                .map(p -> new PengajuanPendingResponseDTO(
+                        p.getId_pengajuan().toString(),
+                        p.getUser().getNama_lengkap(),
+                        p.getAmount(),
+                        p.getTenor(),
+                        p.getStatus(),
+                        p.getTanggalPengajuan().toString(),
+                        p.getCatatanMarketing(),
+                        p.getCatatanManager(),
+                        p.getLokasi(),
+                        p.getAmountFinal(),
+                        p.getMarketing().getUser().getNama_lengkap()
+                ))
+                .toList();
     }
 
     public void disbursePengajuan(UUID idPengajuan, String username) {
@@ -274,5 +323,66 @@ public class PengajuanService {
 
         // Kirim notifikasi ke customer
         notifikasiService.buatNotifikasi(pengajuan.getUser(), "Pinjaman Anda telah dicairkan.");
+    }
+
+    public List<PengajuanPendingResponseDTO> getPengajuanPendingUntukBackoffice(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
+
+        Employee backoffice = user.getEmployee();
+        if (backoffice == null) {
+            throw new IllegalArgumentException("User bukan employee");
+        }
+
+        return pengajuanRepository.findAll().stream()
+                .filter(p -> p.getStatus().equals("APPROVED") &&
+                        p.getBackOffice() != null &&
+                        p.getBackOffice().getEmployee_id().equals(backoffice.getEmployee_id()))
+                .map(p -> new PengajuanPendingResponseDTO(
+                        p.getId_pengajuan().toString(),
+                        p.getUser().getNama_lengkap(),
+                        p.getAmount(),
+                        p.getTenor(),
+                        p.getStatus(),
+                        p.getTanggalPengajuan().toString(),
+                        p.getCatatanMarketing(),
+                        p.getCatatanManager(),
+                        p.getLokasi(),
+                        p.getAmountFinal(),
+                        p.getMarketing().getUser().getNama_lengkap()
+                ))
+                .toList();
+    }
+
+    public List<PengajuanListResponseDTO> getAllPengajuan(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
+
+        List<Pengajuan> semua = pengajuanRepository.findAll().stream()
+                // exclude DISBURSED
+                .filter(p -> !"DISBURSED".equalsIgnoreCase(p.getStatus()))
+                // filter by role
+                .filter(p -> {
+                    String role = user.getRole().getNamaRole().toUpperCase();
+                    if (role.equals("MARKETING")) {
+                        return p.getMarketing().getUser().getUsername().equals(username);
+                    } else if (role.equals("MANAGER") || role.equals("BACKOFFICE")) {
+                        Branch cabangUser = user.getEmployee().getBranch();
+                        return p.getMarketing().getBranch().equals(cabangUser);
+                    }
+                    return false;
+                })
+                .toList();
+
+        return semua.stream()
+                .map(p -> new PengajuanListResponseDTO(
+                        p.getId_pengajuan(),
+                        p.getUser().getNama_lengkap(),                     // nama customer
+                        String.valueOf(p.getAmount()),                    // atau format sesuai kebutuhan
+                        p.getStatus(),
+                        p.getTanggalPengajuan().toString(),
+                        p.getMarketing().getUser().getNama_lengkap()
+                ))
+                .toList();
     }
 }

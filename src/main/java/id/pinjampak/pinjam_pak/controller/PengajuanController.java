@@ -1,16 +1,18 @@
 package id.pinjampak.pinjam_pak.controller;
 
-import id.pinjampak.pinjam_pak.dto.CreatePengajuanRequestDTO;
-import id.pinjampak.pinjam_pak.dto.MarketingReviewRequestDTO;
-import id.pinjampak.pinjam_pak.dto.ReviewManagerRequestDTO;
+import id.pinjampak.pinjam_pak.dto.*;
 import id.pinjampak.pinjam_pak.models.Pengajuan;
 import id.pinjampak.pinjam_pak.services.PengajuanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -32,37 +34,71 @@ public class PengajuanController {
                                                           @RequestBody MarketingReviewRequestDTO request,
                                                           Principal principal) {
         pengajuanService.reviewOlehMarketing(id, request, principal.getName());
-        return ResponseEntity.ok("Review marketing berhasil diproses");
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.OK.value());
+        response.put("message", "Review marketing berhasil diproses");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<List<Pengajuan>> getPengajuanPendingUntukMarketing(Principal principal) {
-        List<Pengajuan> list = pengajuanService.getPengajuanPendingUntukMarketing(principal.getName());
+    public ResponseEntity<List<PengajuanPendingResponseDTO>> getPengajuanPendingUntukMarketing(Principal principal) {
+        List<PengajuanPendingResponseDTO> list = pengajuanService.getPengajuanPendingUntukMarketing(principal.getName());
         return ResponseEntity.ok(list);
     }
 
+
     @PutMapping("/{id}/review-manager")
-    public ResponseEntity<String> reviewByManager(
+    public ResponseEntity<?> reviewByManager(
             @PathVariable UUID id,
             @RequestBody ReviewManagerRequestDTO request,
             Principal principal) {
 
-        pengajuanService.reviewByBranchManager(id, principal.getName(), request.isDisetujui(), request.getCatatan());
-        return ResponseEntity.ok("Pengajuan telah diproses oleh Branch Manager");
+        pengajuanService.reviewByBranchManager(
+                id,
+                principal.getName(),
+                request.isDisetujui(),
+                request.getCatatan()
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.OK.value());
+        response.put("message", "Review manager berhasil diproses");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/pending-manager")
-    public ResponseEntity<List<Pengajuan>> getPengajuanPendingUntukManager(Principal principal) {
-        List<Pengajuan> list = pengajuanService.getPengajuanPendingUntukManager(principal.getName());
+    public ResponseEntity<List<PengajuanPendingResponseDTO>> getPengajuanPendingUntukManager(Principal principal) {
+        List<PengajuanPendingResponseDTO> list = pengajuanService.getPengajuanPendingUntukManager(principal.getName());
         return ResponseEntity.ok(list);
     }
 
     @PutMapping("/{id}/disburse")
-    public ResponseEntity<String> disbursePengajuan(
+    public ResponseEntity<?> disbursePengajuan(
             @PathVariable UUID id,
             Principal principal) {
 
         pengajuanService.disbursePengajuan(id, principal.getName());
-        return ResponseEntity.ok("Pengajuan telah dicairkan");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.OK.value());
+        response.put("message", "Pengajuan berhasil dicairkan");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/pending-backoffice")
+    public ResponseEntity<List<PengajuanPendingResponseDTO>> getPengajuanPendingUntukBackoffice(Principal principal) {
+        List<PengajuanPendingResponseDTO> list = pengajuanService.getPengajuanPendingUntukBackoffice(principal.getName());
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/semua")
+    public ResponseEntity<List<PengajuanListResponseDTO>> getAllPengajuan(Principal principal) {
+        List<PengajuanListResponseDTO> list = pengajuanService.getAllPengajuan(principal.getName());
+        return ResponseEntity.ok(list);
     }
 }
