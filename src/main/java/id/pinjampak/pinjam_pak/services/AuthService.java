@@ -80,7 +80,12 @@ public class AuthService {
             customerId = user.getCustomer().getCustomer_id().toString();
         }
 
-        return new AuthResponseDTO(token, role_id, user.getUsername(), role, customerId, user.isEmailVerified());
+        String employeeId = null;
+        if (user.getEmployee() != null) {
+            employeeId = user.getEmployee().getEmployee_id().toString();
+        }
+
+        return new AuthResponseDTO(token, role_id, user.getUsername(), role, customerId, employeeId, user.isEmailVerified());
     }
 
     @Transactional
@@ -154,8 +159,12 @@ public class AuthService {
             String customerId = user.getCustomer() != null
                     ? user.getCustomer().getCustomer_id().toString()
                     : null;
+            String employeeId = user.getEmployee() != null
+                    ? user.getEmployee().getEmployee_id().toString()
+                    : null;;
 
-            return new AuthResponseDTO(token, roleId, user.getUsername(), role, customerId, user.isEmailVerified());
+
+            return new AuthResponseDTO(token, roleId, user.getUsername(), role, customerId, employeeId, user.isEmailVerified());
         } catch (Exception e) {
             throw new RuntimeException("Google login failed: " + e.getMessage());
         }

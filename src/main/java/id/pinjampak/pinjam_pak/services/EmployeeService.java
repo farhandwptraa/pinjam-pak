@@ -120,4 +120,10 @@ public class EmployeeService {
 
         return "✅ Employee berhasil diupdate.";
     }
+
+    public Branch getBranchForCurrentUser(CustomUserDetails currentUser) {
+        UUID userId = currentUser.getUser().getUserId();
+        Optional<Employee> employeeOpt = employeeRepository.findByUser_UserId(userId);
+        return employeeOpt.map(Employee::getBranch).orElse(null);
+    }
 }

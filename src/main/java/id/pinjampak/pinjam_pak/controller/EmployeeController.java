@@ -56,6 +56,13 @@ public class EmployeeController {
         return response.startsWith("✅") ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
     }
 
+    @GetMapping("/my-branch")
+    public ResponseEntity<?> getMyBranch() {
+        CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Branch branch = employeeService.getBranchForCurrentUser(currentUser);
+        return branch != null ? ResponseEntity.ok(branch) : ResponseEntity.badRequest().body("❌ Branch tidak ditemukan untuk user ini.");
+    }
+
     // 📌 Tambahan untuk ambil list cabang
     @GetMapping("/branches")
     public ResponseEntity<List<Branch>> getAllBranches() {
