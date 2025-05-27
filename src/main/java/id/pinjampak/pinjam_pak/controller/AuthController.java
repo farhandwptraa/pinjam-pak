@@ -30,14 +30,26 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader,
-                                         @RequestBody(required = false) LogoutRequestDTO request) {
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader,
+                                    @RequestBody(required = false) LogoutRequestDTO request) {
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().body("Token tidak valid atau tidak ada.");
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("timestamp", LocalDateTime.now().toString());
+            errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
+            errorResponse.put("message", "Token tidak valid atau tidak ada.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
+
         String token = authHeader.substring(7);
         authService.logout(token, request != null ? request.getFcmToken() : null);
-        return ResponseEntity.ok("Logout berhasil.");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.OK.value());
+        response.put("message", "Logout berhasil.");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping("/change-password")
