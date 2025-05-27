@@ -4,8 +4,13 @@ import id.pinjampak.pinjam_pak.dto.*;
 import id.pinjampak.pinjam_pak.services.AuthService;
 import id.pinjampak.pinjam_pak.services.FcmTokenService;
 import id.pinjampak.pinjam_pak.util.JwtUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,7 +41,7 @@ public class AuthController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<String> changePassword(
+    public ResponseEntity<?> changePassword(
             @RequestBody ChangePasswordRequestDTO request,
             @RequestHeader("Authorization") String authHeader) {
 
@@ -44,7 +49,13 @@ public class AuthController {
         String username = jwtUtil.extractidUser(token);
 
         authService.changePassword(username, request);
-        return ResponseEntity.ok("Password berhasil diubah.");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("status", HttpStatus.OK.value());
+        response.put("message", "Password berhasil diubah.");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/login-google")
