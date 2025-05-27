@@ -32,6 +32,7 @@ public class RoleFeatureService {
                 .toList();
     }
 
+    @Transactional
     public void updateRoleFeatures(UUID roleId, List<UUID> featureIds) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
