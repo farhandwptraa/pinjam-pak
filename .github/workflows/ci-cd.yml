@@ -46,4 +46,4 @@ jobs:
             echo "DB_URL=${DB_URL}"
             pkill -f 'java' || true
             cd /home/${{ secrets.VM_USER }}/pinjampaktesting
-            nohup java -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
+            java -jar *.jar --spring.profiles.active=prod
