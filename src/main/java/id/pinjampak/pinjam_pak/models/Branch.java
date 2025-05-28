@@ -1,9 +1,10 @@
 package id.pinjampak.pinjam_pak.models;
 
-import id.pinjampak.pinjam_pak.enums.ProvinceArea;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -13,7 +14,8 @@ public class Branch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID branch_id;
+    @Column(name = "branch_id")
+    private UUID branchId;
 
     @Column(name = "nama_cabang", nullable = false)
     private String namaCabang;
@@ -21,7 +23,6 @@ public class Branch {
     @Column(nullable = false)
     private String alamat;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProvinceArea area; // 👈 Tambahkan ini
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
+    private List<Province> provinces = new ArrayList<>();
 }

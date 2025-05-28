@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.services;
 
+import id.pinjampak.pinjam_pak.dto.BranchResponseDTO;
 import id.pinjampak.pinjam_pak.dto.RegisterEmployeeRequestDTO;
 import id.pinjampak.pinjam_pak.dto.EmployeeResponseDTO;
 import id.pinjampak.pinjam_pak.dto.UpdateEmployeeRequestDTO;
@@ -125,5 +126,20 @@ public class EmployeeService {
         UUID userId = currentUser.getUser().getUserId();
         Optional<Employee> employeeOpt = employeeRepository.findByUser_UserId(userId);
         return employeeOpt.map(Employee::getBranch).orElse(null);
+    }
+
+    public BranchResponseDTO convertToDTO(Branch branch) {
+        BranchResponseDTO dto = new BranchResponseDTO();
+        dto.setBranchId(branch.getBranchId().toString());
+        dto.setNamaCabang(branch.getNamaCabang());
+        dto.setAlamat(branch.getAlamat());
+        return dto;
+    }
+
+    public List<BranchResponseDTO> getAllBranchDTOs() {
+        List<Branch> branches = branchRepository.findAll();
+        return branches.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 }

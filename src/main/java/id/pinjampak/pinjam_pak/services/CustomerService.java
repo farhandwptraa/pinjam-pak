@@ -47,12 +47,15 @@ public class CustomerService {
             throw new RuntimeException("User sudah terdaftar sebagai customer");
         }
 
+        // ✅ Ambil provinsi berdasarkan nama
         Province province = provinceRepository.findByName(dto.getProvinsi())
                 .orElseThrow(() -> new RuntimeException("Provinsi tidak ditemukan"));
 
-        Branch branch = branchRepository.findFirstByArea(province.getArea())
-                .orElseThrow(() -> new RuntimeException("Cabang tidak ditemukan untuk area " + province.getArea()));
-
+        // ✅ Ambil cabang dari relasi province.getBranch()
+        Branch branch = province.getBranch();
+        if (branch == null) {
+            throw new RuntimeException("Provinsi belum memiliki cabang yang ditetapkan");
+        }
 
         // ✅ Gunakan LoanLevel default
         LoanLevel defaultLoanLevel = LoanLevel.LEVEL_1;
@@ -99,29 +102,30 @@ public class CustomerService {
 
     public Optional<CustomerResponseDTO> getCustomerDTOByUsername(String username) {
         return userRepository.findByUsername(username)
-                .flatMap(customerRepository::findByUser)
-                .map(customer -> {
-                    CustomerResponseDTO dto = new CustomerResponseDTO();
-                    dto.setUsername(customer.getUser().getUsername());
-                    dto.setEmail(customer.getUser().getEmail());
-                    dto.setNama_lengkap(customer.getUser().getNama_lengkap());
+            .flatMap(customerRepository::findByUser)
+            .map(customer -> {
+                CustomerResponseDTO dto = new CustomerResponseDTO();
+                dto.setUsername(customer.getUser().getUsername());
+                dto.setEmail(customer.getUser().getEmail());
+                dto.setNama_lengkap(customer.getUser().getNama_lengkap());
 
-                    dto.setNik(customer.getNik());
-                    dto.setTempat_lahir(customer.getTempat_lahir());
-                    dto.setTanggal_lahir(customer.getTanggal_lahir());
-                    dto.setPekerjaan(customer.getPekerjaan());
-                    dto.setGaji(customer.getGaji());
-                    dto.setPlafond(customer.getPlafond());
-                    dto.setSisa_plafond(customer.getSisa_plafond());
-                    dto.setNo_hp(customer.getNo_hp());
-                    dto.setNama_ibu_kandung(customer.getNama_ibu_kandung());
-                    dto.setAlamat(customer.getAlamat());
-                    dto.setProvinsi(customer.getProvinsi());
-                    dto.setNamaCabang(customer.getBranch().getNamaCabang());
-                    dto.setAreaCabang(customer.getBranch().getArea().name());
-                    dto.setLoanLevel(customer.getLoanLevel().name());
+                dto.setNik(customer.getNik());
+                dto.setTempat_lahir(customer.getTempat_lahir());
+                dto.setTanggal_lahir(customer.getTanggal_lahir());
+                dto.setPekerjaan(customer.getPekerjaan());
+                dto.setGaji(customer.getGaji());
+                dto.setPlafond(customer.getPlafond());
+                dto.setSisa_plafond(customer.getSisa_plafond());
+                dto.setNo_hp(customer.getNo_hp());
+                dto.setNama_ibu_kandung(customer.getNama_ibu_kandung());
+                dto.setAlamat(customer.getAlamat());
+                dto.setProvinsi(customer.getProvinsi());
+                dto.setNamaCabang(customer.getBranch().getNamaCabang());
+                dto.setLoanLevel(customer.getLoanLevel().name());
 
-                    return dto;
-                });
+                return dto;
+            });
     }
+
+
 }

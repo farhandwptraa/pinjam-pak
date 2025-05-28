@@ -9,7 +9,6 @@ public class CustomerResponseDTO {
     private String username;
     private String email;
     private String nama_lengkap;
-
     private String nik;
     private String tempat_lahir;
     private Date tanggal_lahir;
@@ -22,6 +21,5 @@ public class CustomerResponseDTO {
     private String alamat;
     private String provinsi;
     private String namaCabang;
-    private String areaCabang;
     private String loanLevel;
 }

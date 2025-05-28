@@ -1,5 +1,6 @@
 package id.pinjampak.pinjam_pak.controller;
 
+import id.pinjampak.pinjam_pak.dto.BranchResponseDTO;
 import id.pinjampak.pinjam_pak.dto.EmployeeResponseDTO;
 import id.pinjampak.pinjam_pak.dto.RegisterEmployeeRequestDTO;
 import id.pinjampak.pinjam_pak.dto.UpdateEmployeeRequestDTO;
@@ -7,7 +8,6 @@ import id.pinjampak.pinjam_pak.models.Branch;
 import id.pinjampak.pinjam_pak.models.Role;
 import id.pinjampak.pinjam_pak.security.CustomUserDetails;
 import id.pinjampak.pinjam_pak.services.EmployeeService;
-import id.pinjampak.pinjam_pak.repositories.BranchRepository;
 import id.pinjampak.pinjam_pak.repositories.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,6 @@ import java.util.UUID;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
-    private final BranchRepository branchRepository;
     private final RoleRepository roleRepository;
 
     @PostMapping("/register")
@@ -60,13 +59,14 @@ public class EmployeeController {
     public ResponseEntity<?> getMyBranch() {
         CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Branch branch = employeeService.getBranchForCurrentUser(currentUser);
-        return branch != null ? ResponseEntity.ok(branch) : ResponseEntity.badRequest().body("❌ Branch tidak ditemukan untuk user ini.");
+        return branch != null
+                ? ResponseEntity.ok(employeeService.convertToDTO(branch))
+                : ResponseEntity.badRequest().body("❌ Branch tidak ditemukan untuk user ini.");
     }
 
-    // 📌 Tambahan untuk ambil list cabang
     @GetMapping("/branches")
-    public ResponseEntity<List<Branch>> getAllBranches() {
-        return ResponseEntity.ok(branchRepository.findAll());
+    public ResponseEntity<List<BranchResponseDTO>> getAllBranches() {
+        return ResponseEntity.ok(employeeService.getAllBranchDTOs());
     }
 
     // 📌 Tambahan untuk ambil list role
