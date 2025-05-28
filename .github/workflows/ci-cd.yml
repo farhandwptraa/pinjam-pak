@@ -46,4 +46,6 @@ jobs:
             pkill -f 'java' || true
             cd /home/${{ secrets.VM_USER }}/pinjampaktesting
             nohup java -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
-#i will fly
+            sleep 5
+            tail -n 10 app.log
+
