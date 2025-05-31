@@ -359,9 +359,6 @@ public class PengajuanService {
                 .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan"));
 
         List<Pengajuan> semua = pengajuanRepository.findAll().stream()
-                // exclude DISBURSED
-                .filter(p -> !"DISBURSED".equalsIgnoreCase(p.getStatus()))
-                // filter by role
                 .filter(p -> {
                     String role = user.getRole().getNamaRole().toUpperCase();
                     if (role.equals("MARKETING")) {
@@ -372,13 +369,15 @@ public class PengajuanService {
                     }
                     return false;
                 })
+                // 🔽 Sort dari tanggal terbaru ke terlama
+                .sorted(Comparator.comparing(Pengajuan::getTanggalPengajuan).reversed())
                 .toList();
 
         return semua.stream()
                 .map(p -> new PengajuanListResponseDTO(
                         p.getId_pengajuan(),
-                        p.getUser().getNama_lengkap(),                     // nama customer
-                        String.valueOf(p.getAmount()),                    // atau format sesuai kebutuhan
+                        p.getUser().getNama_lengkap(),
+                        String.valueOf(p.getAmount()),
                         p.getStatus(),
                         p.getTanggalPengajuan().toString(),
                         p.getMarketing().getUser().getNama_lengkap()
