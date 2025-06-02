@@ -71,7 +71,17 @@ public class AuthController {
     }
 
     @PostMapping("/login-google")
-    public ResponseEntity<AuthResponseDTO> loginWithGoogle(@RequestBody LoginWithGoogleDTO request) {
-        return ResponseEntity.ok(authService.loginWithGoogle(request));
+    public ResponseEntity<?> loginWithGoogle(@RequestBody LoginWithGoogleDTO request) {
+        try {
+            AuthResponseDTO authResponse = authService.loginWithGoogle(request);
+            return ResponseEntity.ok(authResponse);
+        } catch (RuntimeException ex) {
+            // Tangani exception apapun yang dilempar di service
+            Map<String, Object> errorBody = new HashMap<>();
+            errorBody.put("timestamp", LocalDateTime.now().toString());
+            errorBody.put("status", HttpStatus.BAD_REQUEST.value());
+            errorBody.put("message", ex.getMessage());
+            return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
+        }
     }
 }
