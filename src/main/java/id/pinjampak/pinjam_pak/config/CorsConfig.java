@@ -13,7 +13,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // semua endpoint
-                        .allowedOrigins("http://34.148.109.190/") // URL Angular
+                        .allowedOrigins("http://localhost:4200") // URL Angular
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
