@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 #/src/main/resources/application.properties
+/src/main/resources/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14
