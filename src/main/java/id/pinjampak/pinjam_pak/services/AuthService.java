@@ -139,13 +139,13 @@ public class AuthService {
                 Role defaultRole = roleRepository.findByNamaRole("CUSTOMER")
                         .orElseThrow(() -> new RuntimeException("Role Customer tidak ditemukan"));
 
-                               User newUser = new User();
+                User newUser = new User();
                 newUser.setEmail(email);
                 newUser.setUsername(email);
                 newUser.setNama_lengkap(name);
                 newUser.setPassword("");
                 newUser.setRole(defaultRole);
-
+                newUser.setEmailVerified(true); // 👈 tambahkan ini
                 return userRepository.save(newUser);
             });
 
