@@ -22,7 +22,9 @@ jobs:
       - name: Create Firebase Admin SDK JSON
         run: |
           mkdir -p src/main/resources/firebase
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > src/main/resources/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json
+          cat <<EOF > src/main/resources/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json
+          ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EOF
 
       - name: Build Spring Boot App (Maven)
         run: ./mvnw clean package -DskipTests
