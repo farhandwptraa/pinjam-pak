@@ -15,8 +15,8 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            FileInputStream serviceAccount =
-                    new FileInputStream("home/milyas/pinjampaktesting/firebase/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json");
+            String firebasePath = "/home/milyas/pinjampaktesting/firebase/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json"; // sesuaikan path ini
+            FileInputStream serviceAccount = new FileInputStream(firebasePath);
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
@@ -24,8 +24,12 @@ public class FirebaseConfig {
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);
+                System.out.println("✅ Firebase initialized");
+            } else {
+                System.out.println("⚠️ Firebase already initialized");
             }
         } catch (IOException e) {
+            System.err.println("❌ Failed to initialize Firebase: " + e.getMessage());
             e.printStackTrace();
         }
     }
