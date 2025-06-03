@@ -63,7 +63,7 @@ public class AuthService {
         }
 
         if (user.getRole().getNamaRole().equalsIgnoreCase("CUSTOMER") && !user.isEmailVerified()) {
-            resendVerificationEmail(user); // 👈 kirim ulang email verifikasi
+            resendVerificationEmail(user);
             throw new LoginException("Silakan verifikasi email Anda terlebih dahulu. Email verifikasi telah dikirim ulang.");
         }
 
