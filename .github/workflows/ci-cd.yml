@@ -21,8 +21,8 @@ jobs:
 
       - name: Create Firebase Admin SDK JSON
         run: |
-          mkdir -p src/main/resources/firebase
-          cat <<EOF > src/main/resources/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json
+          mkdir -p home/milyas/pinjampaktesting/firebase
+          cat <<EOF > home/milyas/pinjampaktesting/firebase/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json
           ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           EOF
 

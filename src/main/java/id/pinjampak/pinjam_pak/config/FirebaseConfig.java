@@ -16,7 +16,7 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json");
+                    new FileInputStream("home/milyas/pinjampaktesting/firebase/pinjam-pak-firebase-adminsdk-fbsvc-19c8397e14.json");
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
